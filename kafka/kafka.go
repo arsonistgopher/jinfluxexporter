@@ -29,7 +29,7 @@ func StartKafka(me string, kc Config, jc *junoscollector.JunosCollector, done ch
 			return
 		case <-ticker.C:
 			// For each collector item, collect and dump
-			jc.Collect(responsechan, me)
+			go jc.Collect(responsechan, me)
 		case r := <-responsechan:
 			// For now print TODO: Send to Kafka client
 			fmt.Print(r)

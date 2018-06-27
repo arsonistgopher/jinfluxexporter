@@ -69,6 +69,7 @@ func (c *JunosCollector) Collect(ch chan<- string, label string) {
 
 	wg.Wait()
 	client.Close()
+	fmt.Println("Exited from Collect()")
 }
 
 func (c *JunosCollector) collectForHost(client *rpc.Client, ch chan<- string, label string, wg *sync.WaitGroup) {
@@ -77,9 +78,10 @@ func (c *JunosCollector) collectForHost(client *rpc.Client, ch chan<- string, la
 		fmt.Println("DEBUG: Collection > ", k)
 		err := col.Collect(client, ch, label)
 		if err != nil && err.Error() != "EOF" {
-			log.Errorln(k + ": " + err.Error())
+			fmt.Print("ERROR: " + k + ": " + err.Error())
 		}
 	}
 
+	fmt.Println("Exited from collectForHost")
 	wg.Done()
 }
