@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"os/signal"
 	"sync"
@@ -32,7 +33,7 @@ func main() {
 
 	// Setup kafkadeath channel
 	kafkadeath := make(chan bool, 1)
-	period := time.Duration(*kafkaExport * int(time.Second))
+	period := time.Duration(int64(*kafkaExport) * int64(time.Second))
 
 	// Build Kafka config from command line arguments
 	kconfig := kafka.Config{
@@ -63,10 +64,12 @@ func main() {
 
 		select {
 		case c := <-sigs:
+			fmt.Println("DEBUG: Received signal of some sort...")
 
 			if c == syscall.SIGINT || c == syscall.SIGTERM || c == syscall.SIGKILL {
 
 				kafkadeath <- true
+				fmt.Println("DEBUG: Waiting for sync group to be done")
 				wg.Wait()
 				os.Exit(0)
 			}
