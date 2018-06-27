@@ -1,6 +1,7 @@
 package junoscollector
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/arsonistgopher/jkafkaexporter/alarm"
@@ -73,6 +74,7 @@ func (c *JunosCollector) Collect(ch chan<- string, label string) {
 func (c *JunosCollector) collectForHost(client *rpc.Client, ch chan<- string, label string, wg *sync.WaitGroup) {
 
 	for k, col := range c.collectors {
+		fmt.Println("DEBUG: Collection > ", k)
 		err := col.Collect(client, ch, label)
 		if err != nil && err.Error() != "EOF" {
 			log.Errorln(k + ": " + err.Error())

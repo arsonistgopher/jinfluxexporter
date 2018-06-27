@@ -17,7 +17,7 @@ type Config struct {
 }
 
 // StartKafka is a GR that accepts a channel.
-func StartKafka(kc Config, jc *junoscollector.JunosCollector, done chan bool, wg *sync.WaitGroup) error {
+func StartKafka(me string, kc Config, jc *junoscollector.JunosCollector, done chan bool, wg *sync.WaitGroup) error {
 
 	go func(kc Config, jc *junoscollector.JunosCollector, done chan bool, wg *sync.WaitGroup) {
 		ticker := time.NewTicker(kc.KafkaExport)
@@ -29,7 +29,7 @@ func StartKafka(kc Config, jc *junoscollector.JunosCollector, done chan bool, wg
 			return
 		case <-ticker.C:
 			// For each collector item, collect and dump
-			jc.Collect(responsechan, kc.KafkaHost)
+			jc.Collect(responsechan, me)
 		case r := <-responsechan:
 			// For now print TODO: Send to Kafka client
 			fmt.Print(r)

@@ -21,7 +21,8 @@ var (
 	kafkaExport = flag.Int("kafkaperiod", 30, "Number of seconds inbetween kafka exports")
 	kafkaHost   = flag.String("kafkastring", "127.0.0.1", "Host IP or FQDN of kafka bus")
 	kafkaPort   = flag.Int("kafkaport", 3000, "Port that kafka is running on")
-	kafkaTopic  = flag.String("kafkatopic", "nodeX", "Topic for kafka export")
+	kafkaTopic  = flag.String("kafkatopic", "vmx", "Topic for kafka export")
+	identity    = flag.String("identity", "vmx", "Topic for kafka export")
 )
 
 func main() {
@@ -45,7 +46,7 @@ func main() {
 	c := junoscollector.NewJunosCollector()
 
 	// Start kafka GR that will consume the collector and transmit info to the topic
-	err := kafka.StartKafka(kconfig, c, kafkadeath, wg)
+	err := kafka.StartKafka(*identity, kconfig, c, kafkadeath, wg)
 
 	if err != nil {
 		log.Printf("Error starting kafka: %s", err)
