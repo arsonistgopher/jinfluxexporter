@@ -1,0 +1,10 @@
+# Binaries for programs and plugins
+
+# Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
+.glide/
+
+# IDE specific files
+.idea/
+*.iml
+
+jpromexport
