@@ -56,22 +56,20 @@ func collectors() map[string]collector.RPCCollector {
 
 // Collect implements prometheus.Collector interface
 func (c *JunosCollector) Collect(ch chan<- string, label string) {
-	go func(ch chan<- string, label string) {
-		wg := &sync.WaitGroup{}
-		client, err := rpc.Create()
+	wg := &sync.WaitGroup{}
+	client, err := rpc.Create()
 
-		if err != nil {
-			log.Info(err)
-		}
+	if err != nil {
+		log.Info(err)
+	}
 
-		wg.Add(1)
-		// The use of concurrency here sucked. Removed until I can build a better version.
-		c.collectForHost(client, ch, label, wg)
+	wg.Add(1)
+	// The use of concurrency here sucked. Removed until I can build a better version.
+	c.collectForHost(client, ch, label, wg)
 
-		wg.Wait()
-		client.Close()
-		fmt.Println("Exited from Collect()")
-	}(ch, label)
+	wg.Wait()
+	client.Close()
+	fmt.Println("Exited from Collect()")
 }
 
 func (c *JunosCollector) collectForHost(client *rpc.Client, ch chan<- string, label string, wg *sync.WaitGroup) {
