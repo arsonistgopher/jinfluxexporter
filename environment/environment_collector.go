@@ -27,11 +27,6 @@ func NewCollector() collector.RPCCollector {
 	return &environmentCollector{}
 }
 
-// Describe describes the metrics
-func (*environmentCollector) Describe(ch chan<- *prometheus.Desc) {
-	ch <- temperaturesDesc
-}
-
 // Collect collects metrics from JunOS
 func (c *environmentCollector) Collect(client *rpc.Client, ch chan<- string, label string) error {
 	items, err := c.environmentItems(client)

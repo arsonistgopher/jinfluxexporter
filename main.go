@@ -46,13 +46,14 @@ func main() {
 	// Create Junos collector system
 	c := junoscollector.NewJunosCollector()
 
+	wg.Add(1)
+
 	// Start kafka GR that will consume the collector and transmit info to the topic
 	err := kafka.StartKafka(*identity, kconfig, c, kafkadeath, wg)
 
 	if err != nil {
 		log.Printf("Error starting kafka: %s", err)
 	}
-	wg.Add(1)
 
 	// Loop here now and wait for death signals
 	// Create signal channel and register signals of interest

@@ -20,19 +20,22 @@ type Config struct {
 func StartKafka(me string, kc Config, jc *junoscollector.JunosCollector, done chan bool, wg *sync.WaitGroup) error {
 
 	go func(me string, kc Config, jc *junoscollector.JunosCollector, done chan bool, wg *sync.WaitGroup) {
-		ticker := time.NewTicker(kc.KafkaExport)
-		responsechan := make(chan string, 10)
+		for {
+			ticker := time.NewTicker(kc.KafkaExport)
+			responsechan := make(chan string, 10)
 
-		select {
-		case <-done:
-			wg.Done()
-			return
-		case <-ticker.C:
-			// For each collector item, collect and dump
-			go jc.Collect(responsechan, me)
-		case r := <-responsechan:
-			// For now print TODO: Send to Kafka client
-			fmt.Print(r)
+			select {
+			case <-done:
+				fmt.Println("DEBUG: Waiting for collector to exit()")
+				wg.Done()
+				return
+			case <-ticker.C:
+				// For each collector item, collect and dump
+				jc.Collect(responsechan, me)
+			case r := <-responsechan:
+				// For now print TODO: Send to Kafka client
+				fmt.Print(r)
+			}
 		}
 	}(me, kc, jc, done, wg)
 
