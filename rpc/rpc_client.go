@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"encoding/xml"
+	"fmt"
 	"log"
 
 	"github.com/Juniper/go-netconf/netconf"
@@ -39,12 +40,14 @@ func (c *Client) RunCommandAndParse(rpcenv string, obj interface{}) error {
 
 	reply, err := c.s.Exec(netconf.RawMethod(rpcenv))
 	if err != nil {
+		fmt.Println("ERROR: ", err)
 		return err
 	}
 
 	err = xml.Unmarshal([]byte(reply.Data), obj)
 
 	if err != nil {
+		fmt.Println("ERROR: ", err)
 		return err
 	}
 

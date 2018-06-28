@@ -17,11 +17,13 @@ type Config struct {
 }
 
 // StartKafka is a GR that accepts a channel.
-func StartKafka(me string, kc Config, jc *junoscollector.JunosCollector, done chan bool, wg *sync.WaitGroup) error {
+func StartKafka(me string, kc Config, jc *junoscollector.JunosCollector, done chan bool, wg *sync.WaitGroup) (chan string, error) {
 
-	go func(me string, kc Config, jc *junoscollector.JunosCollector, done chan bool, wg *sync.WaitGroup) {
+	responsechan := make(chan string, 1)
+
+	go func(me string, kc Config, jc *junoscollector.JunosCollector, done chan bool, wg *sync.WaitGroup, responsechan chan string) {
 		ticker := time.NewTicker(kc.KafkaExport)
-		responsechan := make(chan string, 10)
+		// responsechan := make(chan string, 1)
 		for {
 			select {
 			case <-done:
@@ -36,7 +38,7 @@ func StartKafka(me string, kc Config, jc *junoscollector.JunosCollector, done ch
 				fmt.Print(r)
 			}
 		}
-	}(me, kc, jc, done, wg)
+	}(me, kc, jc, done, wg, responsechan)
 
-	return nil
+	return responsechan, nil
 }

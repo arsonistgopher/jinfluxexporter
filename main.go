@@ -49,7 +49,7 @@ func main() {
 	wg.Add(1)
 
 	// Start kafka GR that will consume the collector and transmit info to the topic
-	err := kafka.StartKafka(*identity, kconfig, c, kafkadeath, wg)
+	responsechan, err := kafka.StartKafka(*identity, kconfig, c, kafkadeath, wg)
 
 	if err != nil {
 		log.Printf("Error starting kafka: %s", err)
@@ -74,6 +74,8 @@ func main() {
 				wg.Wait()
 				os.Exit(0)
 			}
+		case r := <-responsechan:
+			fmt.Println(r)
 		}
 	}
 }
