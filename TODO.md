@@ -1,0 +1,3 @@
+- Tidy up each and every collector engine
+- Data is coming back but formatted weirdly
+- Once data is clean, transmit to Kafka
