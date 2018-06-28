@@ -29,6 +29,7 @@ func NewCollector() collector.RPCCollector {
 
 // Collect collects metrics from JunOS
 func (c *environmentCollector) Collect(client *rpc.Client, ch chan<- string, label string) error {
+	fmt.Println("Entered envionment collector...")
 	items, err := c.environmentItems(client)
 	if err != nil {
 		return err
@@ -38,7 +39,10 @@ func (c *environmentCollector) Collect(client *rpc.Client, ch chan<- string, lab
 
 		jsonResponse := "{Node: %s, EnvironmentItem: {Name: %s, Temperature: %s}}"
 		ch <- fmt.Sprintf(jsonResponse, label, item.Name, item.Temperature)
+		fmt.Println("Transmitted data over channel...")
 	}
+
+	fmt.Println("Exited envionment collector...")
 
 	return nil
 }

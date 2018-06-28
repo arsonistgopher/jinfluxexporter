@@ -2,7 +2,6 @@ package junoscollector
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/arsonistgopher/jkafkaexporter/alarm"
 	"github.com/arsonistgopher/jkafkaexporter/bgp"
@@ -11,7 +10,6 @@ import (
 	"github.com/arsonistgopher/jkafkaexporter/interfaces"
 	"github.com/arsonistgopher/jkafkaexporter/routingengine"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/log"
 
 	"github.com/arsonistgopher/jkafkaexporter/rpc"
 )
@@ -56,23 +54,20 @@ func collectors() map[string]collector.RPCCollector {
 
 // Collect implements prometheus.Collector interface
 func (c *JunosCollector) Collect(ch chan<- string, label string) {
-	wg := &sync.WaitGroup{}
+
 	client, err := rpc.Create()
 
 	if err != nil {
-		log.Info(err)
+		fmt.Println(err)
 	}
 
-	wg.Add(1)
-	// The use of concurrency here sucked. Removed until I can build a better version.
-	c.collectForHost(client, ch, label, wg)
+	c.collectForHost(client, ch, label)
 
-	wg.Wait()
 	client.Close()
 	fmt.Println("Exited from Collect()")
 }
 
-func (c *JunosCollector) collectForHost(client *rpc.Client, ch chan<- string, label string, wg *sync.WaitGroup) {
+func (c *JunosCollector) collectForHost(client *rpc.Client, ch chan<- string, label string) {
 
 	for k, col := range c.collectors {
 		fmt.Println("DEBUG: Collection > ", k)
@@ -83,5 +78,4 @@ func (c *JunosCollector) collectForHost(client *rpc.Client, ch chan<- string, la
 	}
 
 	fmt.Println("Exited from collectForHost")
-	wg.Done()
 }
