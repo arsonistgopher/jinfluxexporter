@@ -41,11 +41,12 @@ type interfaceCollector struct {
 
 // NewCollector creates a new collector
 func NewCollector() collector.RPCCollector {
-	return &interfaceCollector{}
+	c := &interfaceCollector{}
+	return c
 }
 
 // Collect collects metrics from JunOS
-func (c *interfaceCollector) Collect(client *rpc.Client, ch chan<- string, label string) error {
+func (c *interfaceCollector) Collect(client rpc.Client, ch chan<- string, label string) error {
 	stats, err := c.interfaceStats(client)
 	if err != nil {
 		return err
@@ -58,9 +59,9 @@ func (c *interfaceCollector) Collect(client *rpc.Client, ch chan<- string, label
 	return nil
 }
 
-func (c *interfaceCollector) interfaceStats(client *rpc.Client) ([]*InterfaceStats, error) {
+func (c *interfaceCollector) interfaceStats(client rpc.Client) ([]*InterfaceStats, error) {
 	x := &InterfaceRpc{}
-	err := client.RunCommandAndParse(`<get-interface-information><level>statistics</level><level-extra>detail</level-extra></get-interface-information>`, &x)
+	err := rpc.RunCommandAndParse(client, `<get-interface-information><level>statistics</level><level-extra>detail</level-extra></get-interface-information>`, &x)
 	if err != nil {
 		return nil, err
 	}

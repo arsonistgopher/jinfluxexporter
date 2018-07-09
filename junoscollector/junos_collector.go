@@ -9,6 +9,7 @@ import (
 	"github.com/arsonistgopher/jkafkaexporter/interfaces"
 	"github.com/arsonistgopher/jkafkaexporter/routingengine"
 	"github.com/prometheus/client_golang/prometheus"
+	"golang.org/x/crypto/ssh"
 
 	"github.com/arsonistgopher/jkafkaexporter/rpc"
 )
@@ -28,12 +29,15 @@ func init() {
 // JunosCollector for export
 type JunosCollector struct {
 	collectors map[string]collector.RPCCollector
+	target     string
+	sshconfig  *ssh.ClientConfig
+	port       int
 }
 
 // NewJunosCollector for creating a new collector map
-func NewJunosCollector() *JunosCollector {
+func NewJunosCollector(sshconfig *ssh.ClientConfig, port int, target string) *JunosCollector {
 	collectors := collectors()
-	return &JunosCollector{collectors}
+	return &JunosCollector{collectors: collectors, sshconfig: sshconfig, port: port, target: target}
 }
 
 func collectors() map[string]collector.RPCCollector {
@@ -53,27 +57,23 @@ func collectors() map[string]collector.RPCCollector {
 // Collect implements prometheus.Collector interface
 func (c *JunosCollector) Collect(ch chan<- string, label string) {
 
-	client, err := rpc.Create()
+	client, err := rpc.Create(c.sshconfig, c.target, c.port)
 
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	c.collectForHost(client, ch, label)
-
-	client.Close()
-	fmt.Println("Exited from Collect()")
+	rpc.Close(client)
 }
 
 func (c *JunosCollector) collectForHost(client *rpc.Client, ch chan<- string, label string) {
 
 	for k, col := range c.collectors {
 		// fmt.Println("DEBUG: Collection > ", k)
-		err := col.Collect(client, ch, label)
+		err := col.Collect(*client, ch, label)
 		if err != nil && err.Error() != "EOF" {
 			fmt.Print("ERROR: " + k + ": " + err.Error())
 		}
 	}
-
-	// fmt.Println("Exited from collectForHost")
 }

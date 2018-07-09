@@ -12,9 +12,10 @@ import (
 
 	"github.com/arsonistgopher/jkafkaexporter/junoscollector"
 	"github.com/arsonistgopher/jkafkaexporter/kafka"
+	"golang.org/x/crypto/ssh"
 )
 
-const version string = "0.0.2"
+const version string = "0.0.27"
 
 var (
 	showVersion = flag.Bool("version", false, "Print version information.")
@@ -23,6 +24,10 @@ var (
 	kafkaPort   = flag.Int("kafkaport", 3000, "Port that kafka is running on")
 	kafkaTopic  = flag.String("kafkatopic", "vmx", "Topic for kafka export")
 	identity    = flag.String("identity", "vmx", "Topic for kafka export")
+	username    = flag.String("username", "kafka", "Username for kafka NETCONF SSH connection")
+	password    = flag.String("password", "kafka", "Password for kafka NETCONF SSH connection")
+	port        = flag.Int("sshport", 22, "Port for kafka NETCONF SSH connection")
+	target      = flag.String("target", "127.0.0.1", "Host IP or FQDN of NETCONF server")
 )
 
 func main() {
@@ -42,8 +47,15 @@ func main() {
 		KafkaTopic:  *kafkaTopic,
 	}
 
+	// Sort yourself out with SSH. Easiest to do that here.
+	sshconfig := &ssh.ClientConfig{
+		User:            *username,
+		Auth:            []ssh.AuthMethod{ssh.Password(*password)},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	}
+
 	// Create Junos collector system
-	c := junoscollector.NewJunosCollector()
+	c := junoscollector.NewJunosCollector(sshconfig, *port, *target)
 
 	wg.Add(1)
 
@@ -73,9 +85,6 @@ func main() {
 				wg.Wait()
 				os.Exit(0)
 			}
-			// case r := <-responsechan:
-			// TODO: Kafka send
-			// fmt.Println(r)
 		}
 	}
 }

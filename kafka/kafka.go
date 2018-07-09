@@ -35,7 +35,6 @@ func StartKafka(me string, kc Config, jc *junoscollector.JunosCollector, done ch
 			config.Producer.Return.Successes = true
 			dialstring1 := fmt.Sprintf("%s:%d", kc.KafkaHost, kc.KafkaPort)
 			brokers := []string{dialstring1}
-			fmt.Println(dialstring1)
 
 			// pd, err := sarama.NewAsyncProducer(brokers, config)
 			pd, err := sarama.NewSyncProducer(brokers, config)

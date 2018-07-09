@@ -44,13 +44,14 @@ type routingEngineCollector struct {
 
 // NewCollector creates a new collector
 func NewCollector() collector.RPCCollector {
-	return &routingEngineCollector{}
+	c := &routingEngineCollector{}
+	return c
 }
 
 // Collect collects metrics from JunOS
-func (c *routingEngineCollector) Collect(client *rpc.Client, ch chan<- string, label string) error {
+func (c *routingEngineCollector) Collect(client rpc.Client, ch chan<- string, label string) error {
 	x := &RoutingEngineRpc{}
-	err := client.RunCommandAndParse("<get-route-engine-information/>", &x)
+	err := rpc.RunCommandAndParse(client, "<get-route-engine-information/>", &x)
 	if err != nil {
 		return err
 	}

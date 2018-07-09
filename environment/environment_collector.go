@@ -24,12 +24,12 @@ type environmentCollector struct {
 
 // NewCollector creates a new collector
 func NewCollector() collector.RPCCollector {
-	return &environmentCollector{}
+	c := &environmentCollector{}
+	return c
 }
 
 // Collect collects metrics from JunOS
-func (c *environmentCollector) Collect(client *rpc.Client, ch chan<- string, label string) error {
-	fmt.Println("Entered envionment collector...")
+func (c *environmentCollector) Collect(client rpc.Client, ch chan<- string, label string) error {
 	items, err := c.environmentItems(client)
 	if err != nil {
 		fmt.Println("ERROR: ", err)
@@ -43,14 +43,12 @@ func (c *environmentCollector) Collect(client *rpc.Client, ch chan<- string, lab
 		fmt.Println("Transmitted data over channel...")
 	}
 
-	fmt.Println("Exited envionment collector...")
-
 	return nil
 }
 
-func (c *environmentCollector) environmentItems(client *rpc.Client) ([]*EnvironmentItem, error) {
+func (c *environmentCollector) environmentItems(client rpc.Client) ([]*EnvironmentItem, error) {
 	x := &EnvironmentRpc{}
-	err := client.RunCommandAndParse("<get-environment-information/>", &x)
+	err := rpc.RunCommandAndParse(client, "<get-environment-information/>", &x)
 	if err != nil {
 		return nil, err
 	}
