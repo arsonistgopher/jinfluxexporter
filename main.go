@@ -13,6 +13,11 @@ import (
 	"github.com/arsonistgopher/jkafkaexporter/junoscollector"
 	"github.com/arsonistgopher/jkafkaexporter/kafka"
 	"golang.org/x/crypto/ssh"
+
+	"github.com/arsonistgopher/jkafkaexporter/alarm"
+	"github.com/arsonistgopher/jkafkaexporter/environment"
+	"github.com/arsonistgopher/jkafkaexporter/interfaces"
+	"github.com/arsonistgopher/jkafkaexporter/routingengine"
 )
 
 const version string = "0.0.27"
@@ -54,9 +59,14 @@ func main() {
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
-	// Create Junos collector system
+	// Add individual collectors
 	c := junoscollector.NewJunosCollector(sshconfig, *port, *target)
+	c.Add("alarm", alarm.NewCollector(""))
+	c.Add("interfaces", interfaces.NewCollector())
+	c.Add("routing-engine", routingengine.NewCollector())
+	c.Add("environemnt", environment.NewCollector())
 
+	// Add one to WaitGroup
 	wg.Add(1)
 
 	// Start kafka GR that will consume the collector and transmit info to the topic

@@ -3,14 +3,10 @@ package junoscollector
 import (
 	"fmt"
 
-	"github.com/arsonistgopher/jkafkaexporter/alarm"
-	"github.com/arsonistgopher/jkafkaexporter/collector"
-	"github.com/arsonistgopher/jkafkaexporter/environment"
-	"github.com/arsonistgopher/jkafkaexporter/interfaces"
-	"github.com/arsonistgopher/jkafkaexporter/routingengine"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/crypto/ssh"
 
+	"github.com/arsonistgopher/jkafkaexporter/collector"
 	"github.com/arsonistgopher/jkafkaexporter/rpc"
 )
 
@@ -36,22 +32,13 @@ type JunosCollector struct {
 
 // NewJunosCollector for creating a new collector map
 func NewJunosCollector(sshconfig *ssh.ClientConfig, port int, target string) *JunosCollector {
-	collectors := collectors()
-	return &JunosCollector{collectors: collectors, sshconfig: sshconfig, port: port, target: target}
+	return &JunosCollector{sshconfig: sshconfig, port: port, target: target, collectors: make(map[string]collector.RPCCollector)}
 }
 
-func collectors() map[string]collector.RPCCollector {
-	m := map[string]collector.RPCCollector{
-		"alarm": alarm.NewCollector(""),
-	}
-
-	// Include each of the stats here
-	m["interfaces"] = interfaces.NewCollector()
-	m["routing-engine"] = routingengine.NewCollector()
-	m["environment"] = environment.NewCollector()
-	m["interfaces"] = interfaces.NewCollector()
-
-	return m
+// Add a collector to the collector map
+func (c *JunosCollector) Add(name string, newcollector collector.RPCCollector) error {
+	c.collectors[name] = newcollector
+	return nil
 }
 
 // Collect implements prometheus.Collector interface

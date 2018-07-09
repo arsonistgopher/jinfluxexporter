@@ -119,7 +119,7 @@ func (*interfaceCollector) collectForInterface(s *InterfaceStats, ch chan<- stri
 			err = 1
 		}
 
-		jsonResponse := "{Node: %s, Iface: %s, IfaceDescription: %s, IfaceMAC: %s, ReceivedBytes: %f" +
+		jsonResponse := "{Node: %s, Iface: %s, IfaceDescription: %s, IfaceMAC: %s, ReceivedBytes: %f, " +
 			"TransmitBytes: %f, AdminState: %d, OpState: %d, Err: %f, TXErr: %f, TXDrop: %f, RXError: %f, RXDrops: %f}"
 
 		ch <- fmt.Sprintf(jsonResponse, label, s.Name, s.Description, s.Mac, s.ReceiveBytes, s.TransmitBytes,
