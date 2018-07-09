@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
 	"os/signal"
 	"sync"
@@ -49,7 +48,7 @@ func main() {
 	wg.Add(1)
 
 	// Start kafka GR that will consume the collector and transmit info to the topic
-	responsechan, err := kafka.StartKafka(*identity, kconfig, c, kafkadeath, wg)
+	_, err := kafka.StartKafka(*identity, kconfig, c, kafkadeath, wg)
 
 	if err != nil {
 		log.Printf("Error starting kafka: %s", err)
@@ -65,17 +64,18 @@ func main() {
 
 		select {
 		case c := <-sigs:
-			fmt.Println("DEBUG: Received signal of some sort...")
+			// fmt.Println("DEBUG: Received signal of some sort...")
 
 			if c == syscall.SIGINT || c == syscall.SIGTERM || c == syscall.SIGKILL {
 
 				kafkadeath <- true
-				fmt.Println("DEBUG: Waiting for sync group to be done")
+				// fmt.Println("DEBUG: Waiting for sync group to be done")
 				wg.Wait()
 				os.Exit(0)
 			}
-		case r := <-responsechan:
-			fmt.Println(r)
+			// case r := <-responsechan:
+			// TODO: Kafka send
+			// fmt.Println(r)
 		}
 	}
 }

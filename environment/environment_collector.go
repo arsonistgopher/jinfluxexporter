@@ -38,7 +38,7 @@ func (c *environmentCollector) Collect(client *rpc.Client, ch chan<- string, lab
 
 	for _, item := range items {
 		fmt.Println("Ready to transmit environment data over channel...")
-		jsonResponse := "{Node: %s, EnvironmentItem: {Name: %s, Temperature: %s}}"
+		jsonResponse := "{Node: %s, EnvironmentItem: %s, Temperature: %f}"
 		ch <- fmt.Sprintf(jsonResponse, label, item.Name, item.Temperature)
 		fmt.Println("Transmitted data over channel...")
 	}

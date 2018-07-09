@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/arsonistgopher/jkafkaexporter/alarm"
-	"github.com/arsonistgopher/jkafkaexporter/bgp"
 	"github.com/arsonistgopher/jkafkaexporter/collector"
 	"github.com/arsonistgopher/jkafkaexporter/environment"
 	"github.com/arsonistgopher/jkafkaexporter/interfaces"
@@ -47,7 +46,6 @@ func collectors() map[string]collector.RPCCollector {
 	m["routing-engine"] = routingengine.NewCollector()
 	m["environment"] = environment.NewCollector()
 	m["interfaces"] = interfaces.NewCollector()
-	m["bgp"] = bgp.NewCollector()
 
 	return m
 }
@@ -70,12 +68,12 @@ func (c *JunosCollector) Collect(ch chan<- string, label string) {
 func (c *JunosCollector) collectForHost(client *rpc.Client, ch chan<- string, label string) {
 
 	for k, col := range c.collectors {
-		fmt.Println("DEBUG: Collection > ", k)
+		// fmt.Println("DEBUG: Collection > ", k)
 		err := col.Collect(client, ch, label)
 		if err != nil && err.Error() != "EOF" {
 			fmt.Print("ERROR: " + k + ": " + err.Error())
 		}
 	}
 
-	fmt.Println("Exited from collectForHost")
+	// fmt.Println("Exited from collectForHost")
 }

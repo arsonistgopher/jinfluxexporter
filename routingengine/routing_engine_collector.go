@@ -57,8 +57,8 @@ func (c *routingEngineCollector) Collect(client *rpc.Client, ch chan<- string, l
 
 	stats := x.RouteEngine
 
-	jsonReturn := "{Node: %s, REngine: {Temp: %s, MemoryUtilised: %s, CPUTemp: %s, CPUUser: %s, CPUBackground: %s, " +
-		"CPUSystem: %s, CPUInterrupt: %s, CPUIdle: %s, LoadAverageOne: %s, LoadAverageFive: %s, LoadAverageFifteen: %s}}"
+	jsonReturn := "{Node: %s, REngine: {Temp: %f, MemoryUtilised: %f, CPUTemp: %f, CPUUser: %f, CPUBackground: %f, " +
+		"CPUSystem: %f, CPUInterrupt: %f, CPUIdle: %f, LoadAverageOne: %f, LoadAverageFive: %f, LoadAverageFifteen: %f}}"
 
 	ch <- fmt.Sprintf(jsonReturn, label, stats.Temperature.Value, stats.MemoryUtilization, stats.CPUTemperature.Value,
 		stats.CPUUser, stats.CPUBackground, stats.CPUSystem, stats.CPUInterrupt, stats.CPUIdle, stats.LoadAverageOne,

@@ -42,7 +42,7 @@ func (c *alarmCollector) Collect(client *rpc.Client, ch chan<- string, label str
 		return err
 	}
 
-	jsonReturn := "{Node: %s, Status: {RedAlarm: %s, YellowAlarm: %s}}"
+	jsonReturn := "{Node: %s, Status: {RedAlarm: %f, YellowAlarm: %f}}"
 	ch <- fmt.Sprintf(jsonReturn, label, counter.RedCount, counter.YellowCount)
 
 	return nil
