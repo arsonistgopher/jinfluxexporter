@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/arsonistgopher/jkafkaexporter/collector"
 	"github.com/arsonistgopher/jkafkaexporter/rpc"
@@ -70,12 +71,12 @@ func (c *interfaceCollector) interfaceStats(client rpc.Client) ([]*InterfaceStat
 	for _, phy := range x.Interfaces {
 		s := &InterfaceStats{
 			IsPhysical:     true,
-			Name:           phy.Name,
+			Name:           strings.Replace(phy.Name, "\n", "", -1),
 			AdminStatus:    phy.AdminStatus == "up",
 			OperStatus:     phy.OperStatus == "up",
 			ErrorStatus:    !(phy.AdminStatus == phy.OperStatus),
-			Description:    phy.Description,
-			Mac:            phy.MacAddress,
+			Description:    strings.Replace(phy.Description, "\n", "", -1),
+			Mac:            strings.Replace(phy.MacAddress, "\n", "", -1),
 			ReceiveDrops:   float64(phy.InputErrors.Drops),
 			ReceiveErrors:  float64(phy.InputErrors.Errors),
 			ReceiveBytes:   float64(phy.Stats.InputBytes),
@@ -120,9 +121,9 @@ func (*interfaceCollector) collectForInterface(s *InterfaceStats, ch chan<- stri
 		}
 
 		jsonResponse := "{Node: %s, Iface: %s, IfaceDescription: %s, IfaceMAC: %s, ReceivedBytes: %f, " +
-			"TransmitBytes: %f, AdminState: %d, OpState: %d, Err: %f, TXErr: %f, TXDrop: %f, RXError: %f, RXDrops: %f}"
+			"TransmitBytes: %f, AdminState: %d, OpState: %d, Err: %d, TXErr: %f, TXDrop: %f, RXError: %f, RXDrops: %f}"
 
 		ch <- fmt.Sprintf(jsonResponse, label, s.Name, s.Description, s.Mac, s.ReceiveBytes, s.TransmitBytes,
-			adminUp, operUp, string(err), s.TransmitErrors, s.TransmitDrops, s.ReceiveErrors, s.ReceiveDrops)
+			adminUp, operUp, err, s.TransmitErrors, s.TransmitDrops, s.ReceiveErrors, s.ReceiveDrops)
 	}
 }
