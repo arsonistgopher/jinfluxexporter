@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"io/ioutil"
 	"os"
 	"os/signal"
 	"sync"
@@ -14,6 +15,7 @@ import (
 	"github.com/arsonistgopher/jkafkaexporter/kafka"
 	"golang.org/x/crypto/ssh"
 
+	// Add new collectors here
 	"github.com/arsonistgopher/jkafkaexporter/alarm"
 	"github.com/arsonistgopher/jkafkaexporter/environment"
 	"github.com/arsonistgopher/jkafkaexporter/interfaces"
@@ -25,7 +27,7 @@ const version string = "0.0.27"
 var (
 	showVersion = flag.Bool("version", false, "Print version information.")
 	kafkaExport = flag.Int("kafkaperiod", 30, "Number of seconds inbetween kafka exports")
-	kafkaHost   = flag.String("kafkastring", "127.0.0.1", "Host IP or FQDN of kafka bus")
+	kafkaHost   = flag.String("kafkahost", "127.0.0.1", "Host IP or FQDN of kafka bus")
 	kafkaPort   = flag.Int("kafkaport", 3000, "Port that kafka is running on")
 	kafkaTopic  = flag.String("kafkatopic", "vmx", "Topic for kafka export")
 	identity    = flag.String("identity", "vmx", "Topic for kafka export")
@@ -33,9 +35,26 @@ var (
 	password    = flag.String("password", "kafka", "Password for kafka NETCONF SSH connection")
 	port        = flag.Int("sshport", 22, "Port for kafka NETCONF SSH connection")
 	target      = flag.String("target", "127.0.0.1", "Host IP or FQDN of NETCONF server")
+	sshkey      = flag.String("sshkey", "./id_rsa.pub", "Fully qualified path to SSH private key")
 )
 
+// PublicKeyFile parses the SSH private key from a FQ file and returns an AuthMethod
+// Function pattern taken from one of Svetlin Ralchev's blog posts
+func PublicKeyFile(file string) ssh.AuthMethod {
+	buffer, err := ioutil.ReadFile(file)
+	if err != nil {
+		return nil
+	}
+
+	key, err := ssh.ParsePrivateKey(buffer)
+	if err != nil {
+		return nil
+	}
+	return ssh.PublicKeys(key)
+}
+
 func main() {
+	// Parse the flags
 	flag.Parse()
 
 	wg := &sync.WaitGroup{}
@@ -52,14 +71,25 @@ func main() {
 		KafkaTopic:  *kafkaTopic,
 	}
 
-	// Sort yourself out with SSH. Easiest to do that here.
-	sshconfig := &ssh.ClientConfig{
-		User:            *username,
-		Auth:            []ssh.AuthMethod{ssh.Password(*password)},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	// Create an sshconfig empty type so we can conditionally populate it depending on the passed in SSH config
+	sshconfig := &ssh.ClientConfig{}
+
+	if *sshkey != "" {
+		sshconfig = &ssh.ClientConfig{
+			User:            *username,
+			Auth:            []ssh.AuthMethod{ssh.Password(*password)},
+			HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		}
+	} else {
+		sshconfig = &ssh.ClientConfig{
+			User: *username,
+			Auth: []ssh.AuthMethod{
+				PublicKeyFile(*sshkey)},
+			HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		}
 	}
 
-	// Add individual collectors
+	// And also add new collectors here...
 	c := junoscollector.NewJunosCollector(sshconfig, *port, *target)
 	c.Add("alarm", alarm.NewCollector(""))
 	c.Add("interfaces", interfaces.NewCollector())

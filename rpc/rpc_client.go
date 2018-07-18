@@ -48,12 +48,6 @@ func Create(sshconfig *ssh.ClientConfig, target string, port int) (*Client, erro
 	return &c, nil
 }
 
-// // Close closes the connection
-// func (c *driver.Driver) Close() error {
-// 	c.s.Close()
-// 	return nil
-// }
-
 // Close closes the connection
 func Close(c *Client) error {
 	err := c.D.Close()
@@ -61,7 +55,6 @@ func Close(c *Client) error {
 }
 
 // RunCommandAndParse runs a command on JunOS and unmarshals the XML result
-// func (c *Client) RunCommandAndParse(rpcenv string, obj interface{}) error {
 func RunCommandAndParse(c Client, rpcenv string, obj interface{}) error {
 	var err error
 

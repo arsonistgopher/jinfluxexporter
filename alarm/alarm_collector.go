@@ -36,7 +36,6 @@ func NewCollector(alarmsFilter string) collector.RPCCollector {
 
 // Collect collects metrics from JunOS
 func (c *alarmCollector) Collect(client rpc.Client, ch chan<- string, label string) error {
-	// func (c *alarmCollector) Collect(client *rpc.Client, ch chan<- prometheus.Metric, labelValues []string) error {
 	counter, err := c.Counter(client)
 	if err != nil {
 		return err

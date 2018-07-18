@@ -5,19 +5,7 @@ import (
 
 	"github.com/arsonistgopher/jkafkaexporter/collector"
 	"github.com/arsonistgopher/jkafkaexporter/rpc"
-	"github.com/prometheus/client_golang/prometheus"
 )
-
-const prefix string = "junos_environment_"
-
-var (
-	temperaturesDesc *prometheus.Desc
-)
-
-func init() {
-	l := []string{"target", "item"}
-	temperaturesDesc = prometheus.NewDesc(prefix+"item_temp", "Temperature of the air flowing past", l, nil)
-}
 
 type environmentCollector struct {
 }
@@ -37,10 +25,10 @@ func (c *environmentCollector) Collect(client rpc.Client, ch chan<- string, labe
 	}
 
 	for _, item := range items {
-		fmt.Println("Ready to transmit environment data over channel...")
+		// fmt.Println("Ready to transmit environment data over channel...")
 		jsonResponse := "{Node: %s, EnvironmentItem: %s, Temperature: %f}"
 		ch <- fmt.Sprintf(jsonResponse, label, item.Name, item.Temperature)
-		fmt.Println("Transmitted data over channel...")
+		// fmt.Println("Transmitted data over channel...")
 	}
 
 	return nil

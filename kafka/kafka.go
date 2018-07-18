@@ -36,7 +36,6 @@ func StartKafka(me string, kc Config, jc *junoscollector.JunosCollector, done ch
 			dialstring1 := fmt.Sprintf("%s:%d", kc.KafkaHost, kc.KafkaPort)
 			brokers := []string{dialstring1}
 
-			// pd, err := sarama.NewAsyncProducer(brokers, config)
 			pd, err := sarama.NewSyncProducer(brokers, config)
 			if err != nil {
 				// Should not reach here
@@ -49,11 +48,9 @@ func StartKafka(me string, kc Config, jc *junoscollector.JunosCollector, done ch
 					panic(err)
 				}
 			}()
-			// var enqueued, errors int
 			for {
 				select {
 				case <-done:
-					// fmt.Println(" : Waiting for collector to exit()")
 					wg.Done()
 					return
 				case r := <-responsechan:
@@ -64,21 +61,10 @@ func StartKafka(me string, kc Config, jc *junoscollector.JunosCollector, done ch
 						Value: sarama.StringEncoder(r),
 					}
 
-					// partition, offset, err := producer.SendMessage(msg)
 					_, _, err = pd.SendMessage(msg)
 					if err != nil {
 						panic(err)
 					}
-
-					// select {
-					// case pd.Input() <- msg:
-					// 	enqueued++
-
-					// case err := <-pd.Errors():
-					// 	fmt.Println("Failed to produce message:", err)
-					// 	errors++
-					// 	panic(err)
-					// }
 				}
 			}
 		}(responsechan, kc, kafkadeath)
@@ -86,7 +72,7 @@ func StartKafka(me string, kc Config, jc *junoscollector.JunosCollector, done ch
 		for {
 			select {
 			case <-done:
-				// fmt.Println(" : Waiting for collector to exit()")
+				// Get's here, we're done
 				kafkadeath <- true
 				wg.Done()
 				return

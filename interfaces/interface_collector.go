@@ -6,35 +6,7 @@ import (
 
 	"github.com/arsonistgopher/jkafkaexporter/collector"
 	"github.com/arsonistgopher/jkafkaexporter/rpc"
-	"github.com/prometheus/client_golang/prometheus"
 )
-
-const prefix = "junos_interface_"
-
-var (
-	receiveBytesDesc   *prometheus.Desc
-	receiveErrorsDesc  *prometheus.Desc
-	receiveDropsDesc   *prometheus.Desc
-	transmitBytesDesc  *prometheus.Desc
-	transmitErrorsDesc *prometheus.Desc
-	transmitDropsDesc  *prometheus.Desc
-	adminStatusDesc    *prometheus.Desc
-	operStatusDesc     *prometheus.Desc
-	errorStatusDesc    *prometheus.Desc
-)
-
-func init() {
-	l := []string{"target", "name", "description", "mac"}
-	receiveBytesDesc = prometheus.NewDesc(prefix+"receive_bytes", "Received data in bytes", l, nil)
-	receiveErrorsDesc = prometheus.NewDesc(prefix+"receive_errors", "Number of errors caused by incoming packets", l, nil)
-	receiveDropsDesc = prometheus.NewDesc(prefix+"receive_drops", "Number of dropped incoming packets", l, nil)
-	transmitBytesDesc = prometheus.NewDesc(prefix+"transmit_bytes", "Transmitted data in bytes", l, nil)
-	transmitErrorsDesc = prometheus.NewDesc(prefix+"transmit_errors", "Number of errors caused by outgoing packets", l, nil)
-	transmitDropsDesc = prometheus.NewDesc(prefix+"transmit_drops", "Number of dropped outgoing packets", l, nil)
-	adminStatusDesc = prometheus.NewDesc(prefix+"admin_up", "Admin operational status", l, nil)
-	operStatusDesc = prometheus.NewDesc(prefix+"up", "Interface operational status", l, nil)
-	errorStatusDesc = prometheus.NewDesc(prefix+"error_status", "Admin and operational status differ", l, nil)
-}
 
 // Collector collects interface metrics
 type interfaceCollector struct {

@@ -3,24 +3,11 @@ package junoscollector
 import (
 	"fmt"
 
-	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/crypto/ssh"
 
 	"github.com/arsonistgopher/jkafkaexporter/collector"
 	"github.com/arsonistgopher/jkafkaexporter/rpc"
 )
-
-const prefix = "junos_"
-
-var (
-	scrapeDurationDesc *prometheus.Desc
-	upDesc             *prometheus.Desc
-)
-
-func init() {
-	upDesc = prometheus.NewDesc(prefix+"up", "Scrape of target was successful", []string{"target"}, nil)
-	scrapeDurationDesc = prometheus.NewDesc(prefix+"collector_duration_seconds", "Duration of a collector scrape for one target", []string{"target"}, nil)
-}
 
 // JunosCollector for export
 type JunosCollector struct {
@@ -41,7 +28,7 @@ func (c *JunosCollector) Add(name string, newcollector collector.RPCCollector) e
 	return nil
 }
 
-// Collect implements prometheus.Collector interface
+// Collect implements interface
 func (c *JunosCollector) Collect(ch chan<- string, label string) {
 
 	client, err := rpc.Create(c.sshconfig, c.target, c.port)
@@ -51,13 +38,17 @@ func (c *JunosCollector) Collect(ch chan<- string, label string) {
 	}
 
 	c.collectForHost(client, ch, label)
-	rpc.Close(client)
+
+	err = rpc.Close(client)
+
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func (c *JunosCollector) collectForHost(client *rpc.Client, ch chan<- string, label string) {
 
 	for k, col := range c.collectors {
-		// fmt.Println("DEBUG: Collection > ", k)
 		err := col.Collect(*client, ch, label)
 		if err != nil && err.Error() != "EOF" {
 			fmt.Print("ERROR: " + k + ": " + err.Error())

@@ -1,11 +1,13 @@
 FROM golang
 
-ENV SSH_KEYFILE "/ssh-keyfile"
-ENV CONFIG_FILE="/config.yml"
-ENV ALARM_FILTER ""
+ENV IDENTITY="vmx01"
+ENV TOPIC="important"
+ENV PERIOD=1
+ENV KAFKAPORT=9092
+ENV KAFKAHOST="10.42.0.1"
+ENV TARGET="10.42.0.132"
 
 RUN apt-get install -y git && \
-    go get github.com/arsonistgopher/jpromexporter
+    go get github.com/arsonistgopher/jkafkaexporter
 
-CMD junos_exporter -ssh.keyfile=$SSH_KEYFILE -config.file=$CONFIG_FILE -alarms.filter=$ALARM_FILTER
-EXPOSE 9326
+CMD jkafkaexporter -identity=$IDENTITY -kafkatopic=$TOPIC -kafkaperiod=$PERIOD -kafkaport=$KAFKAPORT -kafkahost=$KAFKAHOST -password Passw0rd -username jet -sshport 22 -target=$TARGET
