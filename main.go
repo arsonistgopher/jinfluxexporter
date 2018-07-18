@@ -22,7 +22,7 @@ import (
 	"github.com/arsonistgopher/jkafkaexporter/routingengine"
 )
 
-const version string = "0.0.27"
+const version string = "0.0.30"
 
 var (
 	showVersion = flag.Bool("version", false, "Print version information.")
