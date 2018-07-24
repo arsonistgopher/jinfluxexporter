@@ -16,10 +16,10 @@ import (
 	"golang.org/x/crypto/ssh"
 
 	// Add new collectors here
-	"github.com/arsonistgopher/jkafkaexporter/alarm"
-	"github.com/arsonistgopher/jkafkaexporter/environment"
-	"github.com/arsonistgopher/jkafkaexporter/interfaces"
-	"github.com/arsonistgopher/jkafkaexporter/routingengine"
+	"github.com/arsonistgopher/jkafkaexporter/collectors/alarm"
+	"github.com/arsonistgopher/jkafkaexporter/collectors/environment"
+	"github.com/arsonistgopher/jkafkaexporter/collectors/interfaces"
+	"github.com/arsonistgopher/jkafkaexporter/collectors/routingengine"
 
 	"github.com/google/gops/agent"
 )
