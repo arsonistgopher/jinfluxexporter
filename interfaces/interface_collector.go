@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/arsonistgopher/jkafkaexporter/collector"
+	"github.com/arsonistgopher/jkafkaexporter/internal/channels"
 	"github.com/arsonistgopher/jkafkaexporter/rpc"
 )
 
@@ -19,14 +20,14 @@ func NewCollector() collector.RPCCollector {
 }
 
 // Collect collects metrics from JunOS
-func (c *interfaceCollector) Collect(client rpc.Client, ch chan<- string, label string) error {
+func (c *interfaceCollector) Collect(client rpc.Client, ch chan<- channels.Response, label string, topic string) error {
 	stats, err := c.interfaceStats(client)
 	if err != nil {
 		return err
 	}
 
 	for _, s := range stats {
-		c.collectForInterface(s, ch, label)
+		c.collectForInterface(s, ch, label, topic)
 	}
 
 	return nil
@@ -76,7 +77,7 @@ func (c *interfaceCollector) interfaceStats(client rpc.Client) ([]*InterfaceStat
 	return stats, nil
 }
 
-func (*interfaceCollector) collectForInterface(s *InterfaceStats, ch chan<- string, label string) {
+func (*interfaceCollector) collectForInterface(s *InterfaceStats, ch chan<- channels.Response, label string, topic string) {
 
 	if s.IsPhysical {
 		adminUp := 0
@@ -95,7 +96,7 @@ func (*interfaceCollector) collectForInterface(s *InterfaceStats, ch chan<- stri
 		jsonResponse := "{Node: %s, Iface: %s, IfaceDescription: %s, IfaceMAC: %s, ReceivedBytes: %f, " +
 			"TransmitBytes: %f, AdminState: %d, OpState: %d, Err: %d, TXErr: %f, TXDrop: %f, RXError: %f, RXDrops: %f}"
 
-		ch <- fmt.Sprintf(jsonResponse, label, s.Name, s.Description, s.Mac, s.ReceiveBytes, s.TransmitBytes,
-			adminUp, operUp, err, s.TransmitErrors, s.TransmitDrops, s.ReceiveErrors, s.ReceiveDrops)
+		ch <- channels.Response{Data: fmt.Sprintf(jsonResponse, label, s.Name, s.Description, s.Mac, s.ReceiveBytes, s.TransmitBytes,
+			adminUp, operUp, err, s.TransmitErrors, s.TransmitDrops, s.ReceiveErrors, s.ReceiveDrops), Topic: topic}
 	}
 }

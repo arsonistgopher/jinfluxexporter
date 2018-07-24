@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/arsonistgopher/jkafkaexporter/collector"
+	"github.com/arsonistgopher/jkafkaexporter/internal/channels"
 	"github.com/arsonistgopher/jkafkaexporter/rpc"
 )
 
@@ -17,7 +18,7 @@ func NewCollector() collector.RPCCollector {
 }
 
 // Collect collects metrics from JunOS
-func (c *routingEngineCollector) Collect(client rpc.Client, ch chan<- string, label string) error {
+func (c *routingEngineCollector) Collect(client rpc.Client, ch chan<- channels.Response, label string, topic string) error {
 	x := &RoutingEngineRpc{}
 	err := rpc.RunCommandAndParse(client, "<get-route-engine-information/>", &x)
 	if err != nil {
@@ -29,9 +30,9 @@ func (c *routingEngineCollector) Collect(client rpc.Client, ch chan<- string, la
 	jsonReturn := "{Node: %s, REngine: {Temp: %f, MemoryUtilised: %f, CPUTemp: %f, CPUUser: %f, CPUBackground: %f, " +
 		"CPUSystem: %f, CPUInterrupt: %f, CPUIdle: %f, LoadAverageOne: %f, LoadAverageFive: %f, LoadAverageFifteen: %f}}"
 
-	ch <- fmt.Sprintf(jsonReturn, label, stats.Temperature.Value, stats.MemoryUtilization, stats.CPUTemperature.Value,
+	ch <- channels.Response{Data: fmt.Sprintf(jsonReturn, label, stats.Temperature.Value, stats.MemoryUtilization, stats.CPUTemperature.Value,
 		stats.CPUUser, stats.CPUBackground, stats.CPUSystem, stats.CPUInterrupt, stats.CPUIdle, stats.LoadAverageOne,
-		stats.LoadAverageFive, stats.LoadAverageFifteen)
+		stats.LoadAverageFive, stats.LoadAverageFifteen), Topic: topic}
 
 	return nil
 }

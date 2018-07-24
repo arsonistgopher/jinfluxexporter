@@ -3,6 +3,8 @@ package junoscollector
 import (
 	"fmt"
 
+	"github.com/arsonistgopher/jkafkaexporter/internal/channels"
+
 	"golang.org/x/crypto/ssh"
 
 	"github.com/arsonistgopher/jkafkaexporter/collector"
@@ -28,8 +30,13 @@ func (c *JunosCollector) Add(name string, newcollector collector.RPCCollector) e
 	return nil
 }
 
+// Len (number) of collectors registered
+func (c *JunosCollector) Len() int {
+	return len(c.collectors)
+}
+
 // Collect implements interface
-func (c *JunosCollector) Collect(ch chan<- string, label string) {
+func (c *JunosCollector) Collect(ch chan<- channels.Response, label string) {
 
 	client, err := rpc.Create(c.sshconfig, c.target, c.port)
 
@@ -46,10 +53,10 @@ func (c *JunosCollector) Collect(ch chan<- string, label string) {
 	}
 }
 
-func (c *JunosCollector) collectForHost(client *rpc.Client, ch chan<- string, label string) {
+func (c *JunosCollector) collectForHost(client *rpc.Client, ch chan<- channels.Response, label string) {
 
 	for k, col := range c.collectors {
-		err := col.Collect(*client, ch, label)
+		err := col.Collect(*client, ch, label, k)
 		if err != nil && err.Error() != "EOF" {
 			fmt.Print("ERROR: " + k + ": " + err.Error())
 		}

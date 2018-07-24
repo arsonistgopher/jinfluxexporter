@@ -1,5 +1,6 @@
 package interfaces
 
+// InterfaceStats blah
 type InterfaceStats struct {
 	Name           string
 	AdminStatus    bool

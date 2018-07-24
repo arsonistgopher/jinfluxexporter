@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
+	"github.com/arsonistgopher/jkafkaexporter/internal/channels"
 	"github.com/arsonistgopher/jkafkaexporter/junoscollector"
 )
 
@@ -15,19 +16,19 @@ type Config struct {
 	KafkaExport time.Duration // Number of seconds inbetween kafka exports
 	KafkaHost   string        // Host IP or FQDN of kafka bus
 	KafkaPort   int           // Port that kafka is running on
-	KafkaTopic  string        // Topic for kafka export
 }
 
 // StartKafka is a GR that accepts a channel.
-func StartKafka(me string, kc Config, jc *junoscollector.JunosCollector, done chan bool, wg *sync.WaitGroup) (chan string, error) {
+func StartKafka(me string, kc Config, jc *junoscollector.JunosCollector, done chan bool, wg *sync.WaitGroup) (chan channels.Response, error) {
 
-	responsechan := make(chan string, 10)
+	// Create the buffer depth to match the number of collectors
+	responsechan := make(chan channels.Response, jc.Len())
 
-	go func(me string, kc Config, jc *junoscollector.JunosCollector, done chan bool, wg *sync.WaitGroup, responsechan chan string) {
+	go func(me string, kc Config, jc *junoscollector.JunosCollector, done chan bool, wg *sync.WaitGroup, responsechan chan channels.Response) {
 		ticker := time.NewTicker(kc.KafkaExport)
 		kafkadeath := make(chan bool, 1)
 
-		go func(responsechan chan string, kc Config, done chan bool) {
+		go func(responsechan chan channels.Response, kc Config, done chan bool) {
 
 			config := sarama.NewConfig()
 			config.Producer.Retry.Max = 5
@@ -56,9 +57,9 @@ func StartKafka(me string, kc Config, jc *junoscollector.JunosCollector, done ch
 				case r := <-responsechan:
 					strTime := strconv.Itoa(int(time.Now().Unix()))
 					msg := &sarama.ProducerMessage{
-						Topic: kc.KafkaTopic,
+						Topic: r.Topic,
 						Key:   sarama.StringEncoder(strTime),
-						Value: sarama.StringEncoder(r),
+						Value: sarama.StringEncoder(r.Data),
 					}
 
 					_, _, err = pd.SendMessage(msg)

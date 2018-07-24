@@ -20,6 +20,8 @@ import (
 	"github.com/arsonistgopher/jkafkaexporter/environment"
 	"github.com/arsonistgopher/jkafkaexporter/interfaces"
 	"github.com/arsonistgopher/jkafkaexporter/routingengine"
+
+	"github.com/google/gops/agent"
 )
 
 const version string = "0.0.30"
@@ -29,7 +31,6 @@ var (
 	kafkaExport = flag.Int("kafkaperiod", 30, "Number of seconds inbetween kafka exports")
 	kafkaHost   = flag.String("kafkahost", "127.0.0.1", "Host IP or FQDN of kafka bus")
 	kafkaPort   = flag.Int("kafkaport", 3000, "Port that kafka is running on")
-	kafkaTopic  = flag.String("kafkatopic", "vmx", "Topic for kafka export")
 	identity    = flag.String("identity", "vmx", "Topic for kafka export")
 	username    = flag.String("username", "kafka", "Username for kafka NETCONF SSH connection")
 	password    = flag.String("password", "kafka", "Password for kafka NETCONF SSH connection")
@@ -68,7 +69,6 @@ func main() {
 		KafkaExport: period,
 		KafkaHost:   *kafkaHost,
 		KafkaPort:   *kafkaPort,
-		KafkaTopic:  *kafkaTopic,
 	}
 
 	// Create an sshconfig empty type so we can conditionally populate it depending on the passed in SSH config
@@ -90,11 +90,12 @@ func main() {
 	}
 
 	// And also add new collectors here...
+	// Collector name is also the Kafka topic
 	c := junoscollector.NewJunosCollector(sshconfig, *port, *target)
 	c.Add("alarm", alarm.NewCollector(""))
 	c.Add("interfaces", interfaces.NewCollector())
 	c.Add("routing-engine", routingengine.NewCollector())
-	c.Add("environemnt", environment.NewCollector())
+	c.Add("environment", environment.NewCollector())
 
 	// Add one to WaitGroup
 	wg.Add(1)
@@ -110,6 +111,10 @@ func main() {
 	// Create signal channel and register signals of interest
 	sigs := make(chan os.Signal, 3)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
+
+	if err := agent.Listen(agent.Options{}); err != nil {
+		log.Fatal(err)
+	}
 
 	// Create signal listener loop GR
 	for {

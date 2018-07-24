@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/arsonistgopher/jkafkaexporter/internal/channels"
 	"github.com/arsonistgopher/jkafkaexporter/rpc"
 
 	"github.com/arsonistgopher/jkafkaexporter/collector"
@@ -35,14 +36,14 @@ func NewCollector(alarmsFilter string) collector.RPCCollector {
 }
 
 // Collect collects metrics from JunOS
-func (c *alarmCollector) Collect(client rpc.Client, ch chan<- string, label string) error {
+func (c *alarmCollector) Collect(client rpc.Client, ch chan<- channels.Response, label string, topic string) error {
 	counter, err := c.Counter(client)
 	if err != nil {
 		return err
 	}
 
 	jsonReturn := "{Node: %s, Status: {RedAlarm: %f, YellowAlarm: %f}}"
-	ch <- fmt.Sprintf(jsonReturn, label, counter.RedCount, counter.YellowCount)
+	ch <- channels.Response{Data: fmt.Sprintf(jsonReturn, label, counter.RedCount, counter.YellowCount), Topic: topic}
 
 	return nil
 }

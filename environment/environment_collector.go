@@ -3,6 +3,8 @@ package environment
 import (
 	"fmt"
 
+	"github.com/arsonistgopher/jkafkaexporter/internal/channels"
+
 	"github.com/arsonistgopher/jkafkaexporter/collector"
 	"github.com/arsonistgopher/jkafkaexporter/rpc"
 )
@@ -17,7 +19,7 @@ func NewCollector() collector.RPCCollector {
 }
 
 // Collect collects metrics from JunOS
-func (c *environmentCollector) Collect(client rpc.Client, ch chan<- string, label string) error {
+func (c *environmentCollector) Collect(client rpc.Client, ch chan<- channels.Response, label string, topic string) error {
 	items, err := c.environmentItems(client)
 	if err != nil {
 		fmt.Println("ERROR: ", err)
@@ -27,7 +29,7 @@ func (c *environmentCollector) Collect(client rpc.Client, ch chan<- string, labe
 	for _, item := range items {
 		// fmt.Println("Ready to transmit environment data over channel...")
 		jsonResponse := "{Node: %s, EnvironmentItem: %s, Temperature: %f}"
-		ch <- fmt.Sprintf(jsonResponse, label, item.Name, item.Temperature)
+		ch <- channels.Response{Data: fmt.Sprintf(jsonResponse, label, item.Name, item.Temperature), Topic: topic}
 		// fmt.Println("Transmitted data over channel...")
 	}
 
