@@ -36,7 +36,7 @@ Currently, collectors include: alarm, environment, interfaces and routing-engine
     import (
     ...
 	// Add new collectors here
-    "github.com/arsonistgopher/jkafkaexporter/something"
+    "github.com/arsonistgopher/jkafkaexporter/collectors/something"
     )
 
     ...
