@@ -74,7 +74,7 @@ func main() {
 	}
 
 	// Create an sshconfig empty type so we can conditionally populate it depending on the passed in SSH config
-	sshconfig := &ssh.ClientConfig{}
+	var sshconfig *ssh.ClientConfig
 
 	if *sshkey != "" {
 		sshconfig = &ssh.ClientConfig{
