@@ -13,7 +13,7 @@ import (
 
 // Config holds the Kafka info
 type Config struct {
-	KafkaExport time.Duration // Number of seconds inbetween kafka exports
+	KafkaExport time.Duration // Number of seconds in-between kafka exports
 	KafkaHost   string        // Host IP or FQDN of kafka bus
 	KafkaPort   int           // Port that kafka is running on
 }

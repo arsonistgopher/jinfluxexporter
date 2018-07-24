@@ -30,7 +30,7 @@ const version string = "00.01.00"
 
 var (
 	showVersion = flag.Bool("version", false, "Print version information.")
-	kafkaExport = flag.Int("kafkaperiod", 30, "Number of seconds inbetween kafka exports")
+	kafkaExport = flag.Int("kafkaperiod", 30, "Number of seconds in-between kafka exports")
 	kafkaHost   = flag.String("kafkahost", "127.0.0.1", "Host IP or FQDN of kafka bus")
 	kafkaPort   = flag.Int("kafkaport", 3000, "Port that kafka is running on")
 	identity    = flag.String("identity", "vmx", "Topic for kafka export")
