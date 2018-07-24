@@ -1,8 +1,8 @@
 # jKafkaexporter
 
 [![GoDoc](https://godoc.org/github.com/arsonistgopher/jkafkaexporter?status.svg)](https://godoc.org/github.com/arsonistgopher/go-netconf/jkafkaexporter)
-[![Go Report Card](https://goreportcard.com/badge/github.com/arsonistgopher/jkafkaexporter)](https://goreportcard.com/report/github.com/arsonistgopher/jkafkaexporter)
 [![Build Status](https://travis-ci.org/arsonistgopher/jkafkaexporter.svg?branch=master)](https://travis-ci.org/arsonistgopher/jkafkaexporter)
+[![Go Report Card](https://goreportcard.com/badge/github.com/arsonistgopher/jkafkaexporter)](https://goreportcard.com/report/github.com/arsonistgopher/jkafkaexporter)
 
 This is an application for Junos that drives NETCONF in order to retrieve data that is transformed into JSON and then placed on to a Kafka bus. Each Kafka topic is derived from the collector name.
 
