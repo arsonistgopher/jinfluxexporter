@@ -24,7 +24,9 @@ import (
 	"github.com/google/gops/agent"
 )
 
-const version string = "0.0.30"
+const version string = "00.01.00"
+
+// Beta release 00.01.00
 
 var (
 	showVersion = flag.Bool("version", false, "Print version information.")
