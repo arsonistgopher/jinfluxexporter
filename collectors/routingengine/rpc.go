@@ -1,9 +1,11 @@
 package routingengine
 
+// RoutingEngineRpc top level type
 type RoutingEngineRpc struct {
 	RouteEngine RouteEngine `xml:"route-engine"`
 }
 
+// RouteEngine type
 type RouteEngine struct {
 	Temperature        RouteEngineTemperature `xml:"temperature"`
 	MemoryUtilization  float64                `xml:"memory-buffer-utilization"`
@@ -18,6 +20,7 @@ type RouteEngine struct {
 	LoadAverageFifteen float64                `xml:"load-average-fifteen"`
 }
 
+// RouteEngineTemperature type
 type RouteEngineTemperature struct {
 	Value float64 `xml:"celsius,attr"`
 }

@@ -1,9 +1,11 @@
 package interfaces
 
+// InterfaceRpc is the top level Interface slice type
 type InterfaceRpc struct {
 	Interfaces []PhyInterface `xml:"physical-interface"`
 }
 
+// PhyInterface is the top level Interface type
 type PhyInterface struct {
 	Name              string         `xml:"name"`
 	AdminStatus       string         `xml:"admin-status"`
@@ -22,12 +24,14 @@ type PhyInterface struct {
 	} `xml:"output-error-list"`
 }
 
+// LogInterface type
 type LogInterface struct {
 	Name        string      `xml:"name"`
 	Description string      `xml:"description"`
 	Stats       TrafficStat `xml:"traffic-statistics"`
 }
 
+// TrafficStat type
 type TrafficStat struct {
 	InputBytes  int64 `xml:"input-bytes"`
 	OutputBytes int64 `xml:"output-bytes"`
