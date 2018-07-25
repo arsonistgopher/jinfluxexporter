@@ -12,6 +12,8 @@ This is an application for Junos that drives NETCONF in order to retrieve data t
 
 Currently beta version. Seems to behave itself!
 
+Kafka options are fairly limited, but the idea here is if we start with the basics and add features as they're required, the project will receive enhancements naturally.
+
 ## Features
 * Simple user land application 
 
@@ -20,7 +22,7 @@ Currently beta version. Seems to behave itself!
 * `go get github.com/arsonistgopher/jkafkaexporter`
 
 ## Documentation
-You can view full API documentation at GoDoc: http://godoc.org/github.com/arsonistgopher/jkafkaexporter
+You can view full API documentation at GoDoc: http://godoc.org/github.com/arsonistgopher/jkafkaexporter.
 
 ## Usage
 
