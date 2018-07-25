@@ -114,9 +114,11 @@ func main() {
 	sigs := make(chan os.Signal, 3)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 
+	// These lines are for "GOPS". Comment them out if you do not want to debug.
 	if err := agent.Listen(agent.Options{}); err != nil {
 		log.Fatal(err)
 	}
+	// End of "GOPS"
 
 	// Create signal listener loop GR
 	for {
