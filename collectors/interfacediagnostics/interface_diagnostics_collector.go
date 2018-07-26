@@ -1,12 +1,12 @@
 package interfacediagnostics
 
 import (
-	"fmt"
 	"strconv"
+	"time"
 
-	"github.com/arsonistgopher/jkafkaexporter/collector"
-	"github.com/arsonistgopher/jkafkaexporter/internal/channels"
-	"github.com/arsonistgopher/jkafkaexporter/rpc"
+	"github.com/arsonistgopher/jinfluxdbexporter/collector"
+	"github.com/arsonistgopher/jinfluxdbexporter/internal/channels"
+	"github.com/arsonistgopher/jinfluxdbexporter/rpc"
 )
 
 type interfaceDiagnosticsCollector struct {
@@ -18,7 +18,7 @@ func NewCollector() collector.RPCCollector {
 }
 
 // Collect collects metrics from JunOS
-func (c *interfaceDiagnosticsCollector) Collect(client rpc.Client, ch chan<- channels.Response, label string, topic string) error {
+func (c *interfaceDiagnosticsCollector) Collect(client rpc.Client, ch chan<- channels.InfluxDBMeasurement, label string, measurement string) error {
 	diagnostics, err := c.interfaceDiagnostics(client)
 	if err != nil {
 		return err
@@ -26,17 +26,31 @@ func (c *interfaceDiagnosticsCollector) Collect(client rpc.Client, ch chan<- cha
 
 	for _, d := range diagnostics {
 
-		jsonResponse1 := "{Node: %s, laserBiasCurrent: %f, laserOutputPower: %f, laserOutputPowerDbm: %f, moduleTemperature: %f}"
-		jsonResponse2 := "{Node: %s, moduleVoltage: %f, rxSignalAvgOpticalPower: %f, rxSignalAvgOpticalPowerDbm: %f}"
-		jsonResponse3 := "{Node: %s, laserRxOpticalPower: %f, laserRxOpticalPowerDbm: %f}"
+		tagset := make(map[string]string)
+		tagset["host"] = label
 
-		ch <- channels.Response{Data: fmt.Sprintf(jsonResponse1, label, d.LaserBiasCurrent, d.LaserOutputPower, d.LaserOutputPowerDbm, d.ModuleTemperature), Topic: topic}
+		fieldset := map[string]interface{}{
+			"LaserBiasCurrent":    uint64(d.LaserBiasCurrent),
+			"LaserOutputPower":    uint64(d.LaserOutputPower),
+			"LaserOutputPowerDbm": uint64(d.LaserOutputPowerDbm),
+			"ModuleTemperature":   uint64(d.ModuleTemperature),
+		}
+
+		ch <- channels.InfluxDBMeasurement{Measurement: measurement, TagSet: tagset, FieldSet: fieldset, TimeStamp: time.Now()}
 
 		if d.ModuleVoltage > 0 {
-			ch <- channels.Response{Data: fmt.Sprintf(jsonResponse2, label, d.ModuleVoltage, d.RxSignalAvgOpticalPower, d.RxSignalAvgOpticalPowerDbm), Topic: topic}
+			fieldset := map[string]interface{}{
+				"ModuleVoltage":              uint64(d.ModuleVoltage),
+				"RxSignalAvgOpticalPower":    uint64(d.RxSignalAvgOpticalPower),
+				"RxSignalAvgOpticalPowerDbm": uint64(d.RxSignalAvgOpticalPowerDbm),
+			}
+			ch <- channels.InfluxDBMeasurement{Measurement: measurement, TagSet: tagset, FieldSet: fieldset, TimeStamp: time.Now()}
 		} else {
-			ch <- channels.Response{Data: fmt.Sprintf(jsonResponse3, label, d.LaserRxOpticalPower, d.LaserRxOpticalPowerDbm), Topic: topic}
-
+			fieldset := map[string]interface{}{
+				"LaserRxOpticalPower":    uint64(d.LaserRxOpticalPower),
+				"LaserRxOpticalPowerDbm": uint64(d.LaserRxOpticalPowerDbm),
+			}
+			ch <- channels.InfluxDBMeasurement{Measurement: measurement, TagSet: tagset, FieldSet: fieldset, TimeStamp: time.Now()}
 		}
 	}
 

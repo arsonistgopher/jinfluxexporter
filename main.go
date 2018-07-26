@@ -11,37 +11,35 @@ import (
 
 	"log"
 
-	"github.com/arsonistgopher/jkafkaexporter/junoscollector"
-	"github.com/arsonistgopher/jkafkaexporter/kafka"
+	"github.com/arsonistgopher/jinfluxdbexporter/influxhandler"
+	"github.com/arsonistgopher/jinfluxdbexporter/junoscollector"
 	"golang.org/x/crypto/ssh"
 
 	// Add new collectors here
-	"github.com/arsonistgopher/jkafkaexporter/collectors/alarm"
-	"github.com/arsonistgopher/jkafkaexporter/collectors/bgp"
-	"github.com/arsonistgopher/jkafkaexporter/collectors/environment"
-	"github.com/arsonistgopher/jkafkaexporter/collectors/interfacediagnostics"
-	"github.com/arsonistgopher/jkafkaexporter/collectors/interfaces"
-	"github.com/arsonistgopher/jkafkaexporter/collectors/route"
-	"github.com/arsonistgopher/jkafkaexporter/collectors/routingengine"
-
-	"github.com/google/gops/agent"
+	"github.com/arsonistgopher/jinfluxdbexporter/collectors/alarm"
+	"github.com/arsonistgopher/jinfluxdbexporter/collectors/bgp"
+	"github.com/arsonistgopher/jinfluxdbexporter/collectors/environment"
+	"github.com/arsonistgopher/jinfluxdbexporter/collectors/interfacediagnostics"
+	"github.com/arsonistgopher/jinfluxdbexporter/collectors/interfaces"
+	"github.com/arsonistgopher/jinfluxdbexporter/collectors/route"
+	"github.com/arsonistgopher/jinfluxdbexporter/collectors/routingengine"
 )
 
-const version string = "00.01.00"
+const version string = "00.00.01"
 
 // Beta release 00.01.00
 
 var (
-	showVersion = flag.Bool("version", false, "Print version information.")
-	kafkaExport = flag.Int("kafkaperiod", 30, "Number of seconds in-between kafka exports")
-	kafkaHost   = flag.String("kafkahost", "127.0.0.1", "Host IP or FQDN of kafka bus")
-	kafkaPort   = flag.Int("kafkaport", 3000, "Port that kafka is running on")
-	identity    = flag.String("identity", "vmx", "Topic for kafka export")
-	username    = flag.String("username", "kafka", "Username for kafka NETCONF SSH connection")
-	password    = flag.String("password", "kafka", "Password for kafka NETCONF SSH connection")
-	port        = flag.Int("sshport", 22, "Port for kafka NETCONF SSH connection")
-	target      = flag.String("target", "127.0.0.1", "Host IP or FQDN of NETCONF server")
-	sshkey      = flag.String("sshkey", "./id_rsa.pub", "Fully qualified path to SSH private key")
+	showVersion  = flag.Bool("version", false, "Print version information.")
+	influxExport = flag.Int("influxperiod", 30, "Number of seconds in-between InfluxDB exports")
+	influxHost   = flag.String("influxhost", "http://127.0.0.1:8086", "Host string in form http(s)://IP:PORT")
+	influxDB     = flag.String("influxdb", "junos", "Database name")
+	identity     = flag.String("identity", "vmx", "Identity of device targeted for data collection")
+	username     = flag.String("username", "influx", "Username for NETCONF SSH connection")
+	password     = flag.String("password", "Passw0rd", "Password for NETCONF SSH connection")
+	port         = flag.Int("sshport", 22, "Port for NETCONF SSH connection")
+	target       = flag.String("target", "127.0.0.1", "Host IP or FQDN of NETCONF server")
+	sshkey       = flag.String("sshkey", "./id_rsa.pub", "Fully qualified path to SSH private key")
 )
 
 // PublicKeyFile parses the SSH private key from a FQ file and returns an AuthMethod
@@ -65,15 +63,15 @@ func main() {
 
 	wg := &sync.WaitGroup{}
 
-	// Setup kafkadeath channel
-	kafkadeath := make(chan bool, 1)
-	period := time.Duration(int64(*kafkaExport) * int64(time.Second))
+	// Setup influxdeath channel
+	influxdeath := make(chan struct{}, 1)
+	period := time.Duration(int64(*influxExport) * int64(time.Second))
 
-	// Build Kafka config from command line arguments
-	kconfig := kafka.Config{
-		KafkaExport: period,
-		KafkaHost:   *kafkaHost,
-		KafkaPort:   *kafkaPort,
+	// Build Influx config from command line arguments
+	iconfig := influxhandler.Config{
+		InfluxdbExport: period,
+		InfluxdbHost:   *influxHost,
+		InfluxdbDB:     *influxDB,
 	}
 
 	// Create an sshconfig empty type so we can conditionally populate it depending on the passed in SSH config
@@ -95,7 +93,7 @@ func main() {
 	}
 
 	// And also add new collectors here...
-	// Collector name is also the Kafka topic
+	// Collector name is also the measurement name
 	c := junoscollector.NewJunosCollector(sshconfig, *port, *target)
 	c.Add("alarm", alarm.NewCollector(""))
 	c.Add("interfaces", interfaces.NewCollector())
@@ -108,11 +106,11 @@ func main() {
 	// Add one to WaitGroup
 	wg.Add(1)
 
-	// Start kafka GR that will consume the collector and transmit info to the topic
-	_, err := kafka.StartKafka(*identity, kconfig, c, kafkadeath, wg)
+	// Start Influx GR that will consume the collector and transmit info to the topic
+	_, err := influxhandler.StartInflux(*identity, iconfig, c, influxdeath, wg)
 
 	if err != nil {
-		log.Printf("Error starting kafka: %s", err)
+		log.Printf("Error starting Influx handler: %s", err)
 	}
 
 	// Loop here now and wait for death signals
@@ -121,9 +119,9 @@ func main() {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 
 	// These lines are for "GOPS". Comment them out if you do not want to debug.
-	if err := agent.Listen(agent.Options{}); err != nil {
-		log.Fatal(err)
-	}
+	//if err := agent.Listen(agent.Options{}); err != nil {
+	//	log.Fatal(err)
+	//}
 	// End of "GOPS"
 
 	// Create signal listener loop GR
@@ -135,7 +133,7 @@ func main() {
 
 			if c == syscall.SIGINT || c == syscall.SIGTERM || c == syscall.SIGKILL {
 
-				kafkadeath <- true
+				influxdeath <- struct{}{}
 				// fmt.Println("DEBUG: Waiting for sync group to be done")
 				wg.Wait()
 				os.Exit(0)

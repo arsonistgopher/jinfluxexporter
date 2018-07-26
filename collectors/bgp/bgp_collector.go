@@ -1,11 +1,11 @@
 package bgp
 
 import (
-	"fmt"
+	"time"
 
-	"github.com/arsonistgopher/jkafkaexporter/collector"
-	"github.com/arsonistgopher/jkafkaexporter/internal/channels"
-	"github.com/arsonistgopher/jkafkaexporter/rpc"
+	"github.com/arsonistgopher/jinfluxdbexporter/collector"
+	"github.com/arsonistgopher/jinfluxdbexporter/internal/channels"
+	"github.com/arsonistgopher/jinfluxdbexporter/rpc"
 )
 
 type bgpCollector struct {
@@ -17,7 +17,7 @@ func NewCollector() collector.RPCCollector {
 }
 
 // Collect collects metrics from JunOS
-func (c *bgpCollector) Collect(client rpc.Client, ch chan<- channels.Response, label string, topic string) error {
+func (c *bgpCollector) Collect(client rpc.Client, ch chan<- channels.InfluxDBMeasurement, label string, measurement string) error {
 	sessions, err := c.bgpSessions(client)
 	if err != nil {
 		return err
@@ -30,8 +30,21 @@ func (c *bgpCollector) Collect(client rpc.Client, ch chan<- channels.Response, l
 			up = 1
 		}
 
-		jsonResponse := "{Node: %s, up: %f, receivedPrefixes: %f, acceptedPrefixes: %f, rejectedPrefixes: %f, activePrefixes: %f, inputMessages: %f, outputMessages: %f, flaps: %f}"
-		ch <- channels.Response{Data: fmt.Sprintf(jsonResponse, label, up, s.ReceivedPrefixes, s.AcceptedPrefixes, s.RejectedPrefixes, s.ActivePrefixes, s.InputMessages, s.OutputMessages, s.Flaps), Topic: topic}
+		tagset := make(map[string]string)
+		tagset["host"] = label
+
+		fieldset := map[string]interface{}{
+			"up":               uint64(up),
+			"receivedPrefixes": uint64(s.ReceivedPrefixes),
+			"acceptedPrefixes": uint64(s.AcceptedPrefixes),
+			"rejectedPrefixes": uint64(s.RejectedPrefixes),
+			"activePrefixes":   uint64(s.ActivePrefixes),
+			"inputMessages":    uint64(s.InputMessages),
+			"outputMessages":   uint64(s.OutputMessages),
+			"flaps":            uint64(s.Flaps),
+		}
+
+		ch <- channels.InfluxDBMeasurement{Measurement: measurement, TagSet: tagset, FieldSet: fieldset, TimeStamp: time.Now()}
 	}
 
 	return nil

@@ -2,11 +2,12 @@ package environment
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/arsonistgopher/jkafkaexporter/internal/channels"
+	"github.com/arsonistgopher/jinfluxdbexporter/internal/channels"
 
-	"github.com/arsonistgopher/jkafkaexporter/collector"
-	"github.com/arsonistgopher/jkafkaexporter/rpc"
+	"github.com/arsonistgopher/jinfluxdbexporter/collector"
+	"github.com/arsonistgopher/jinfluxdbexporter/rpc"
 )
 
 type environmentCollector struct {
@@ -19,7 +20,7 @@ func NewCollector() collector.RPCCollector {
 }
 
 // Collect collects metrics from JunOS
-func (c *environmentCollector) Collect(client rpc.Client, ch chan<- channels.Response, label string, topic string) error {
+func (c *environmentCollector) Collect(client rpc.Client, ch chan<- channels.InfluxDBMeasurement, label string, measurement string) error {
 	items, err := c.environmentItems(client)
 	if err != nil {
 		fmt.Println("ERROR: ", err)
@@ -27,10 +28,16 @@ func (c *environmentCollector) Collect(client rpc.Client, ch chan<- channels.Res
 	}
 
 	for _, item := range items {
-		// fmt.Println("Ready to transmit environment data over channel...")
-		jsonResponse := "{Node: %s, EnvironmentItem: %s, Temperature: %f}"
-		ch <- channels.Response{Data: fmt.Sprintf(jsonResponse, label, item.Name, item.Temperature), Topic: topic}
-		// fmt.Println("Transmitted data over channel...")
+
+		tagset := make(map[string]string)
+		tagset["host"] = label
+
+		fieldset := map[string]interface{}{
+			"receivedPrefixes": item.Name,
+			"acceptedPrefixes": item.Temperature,
+		}
+
+		ch <- channels.InfluxDBMeasurement{Measurement: measurement, TagSet: tagset, FieldSet: fieldset, TimeStamp: time.Now()}
 	}
 
 	return nil

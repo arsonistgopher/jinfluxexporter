@@ -1,8 +1,8 @@
-# jKafkaexporter
+# jinfluxdbexporter
 
-[![GoDoc](https://godoc.org/github.com/arsonistgopher/jkafkaexporter?status.svg)](https://godoc.org/github.com/arsonistgopher/go-netconf/jkafkaexporter)
-[![Build Status](https://travis-ci.org/arsonistgopher/jkafkaexporter.svg?branch=master)](https://travis-ci.org/arsonistgopher/jkafkaexporter)
-[![Go Report Card](https://goreportcard.com/badge/github.com/arsonistgopher/jkafkaexporter)](https://goreportcard.com/report/github.com/arsonistgopher/jkafkaexporter)
+[![GoDoc](https://godoc.org/github.com/arsonistgopher/jinfluxdbexporter?status.svg)](https://godoc.org/github.com/arsonistgopher/go-netconf/jinfluxdbexporter)
+[![Build Status](https://travis-ci.org/arsonistgopher/jinfluxdbexporter.svg?branch=master)](https://travis-ci.org/arsonistgopher/jinfluxdbexporter)
+[![Go Report Card](https://goreportcard.com/badge/github.com/arsonistgopher/jinfluxdbexporter)](https://goreportcard.com/report/github.com/arsonistgopher/jinfluxdbexporter)
 
 This is an application for Junos that drives NETCONF in order to retrieve data that is transformed into JSON and then placed on to a Kafka bus. Each Kafka topic is derived from the collector name.
 
@@ -19,14 +19,14 @@ Kafka options are fairly limited, but the idea here is if we start with the basi
 
 ## Install
 * Requires Go 1.4 or later
-* `go get github.com/arsonistgopher/jkafkaexporter`
+* `go get github.com/arsonistgopher/jinfluxdbexporter`
 
 ## Documentation
-You can view full API documentation at GoDoc: http://godoc.org/github.com/arsonistgopher/jkafkaexporter.
+You can view full API documentation at GoDoc: http://godoc.org/github.com/arsonistgopher/jinfluxdbexporter.
 
 ## Usage
 
-`./jkafkaexporter -identity vmx01 -kafkaperiod 1 -kafkaport 9092 -kafkahost localhost -password Passw0rd -username bob -sshport 22 -target 10.42.0.132`
+`./jinfluxdbexporter -identity vmx01 -kafkaperiod 1 -kafkaport 9092 -kafkahost localhost -password Passw0rd -username bob -sshport 22 -target 10.42.0.132`
 
 You can also put an ampersand after the invocation to push the application in to the background.
 
@@ -38,7 +38,7 @@ Currently, collectors include: alarm, environment, interfaces and routing-engine
     import (
     ...
 	// Add new collectors here
-    "github.com/arsonistgopher/jkafkaexporter/collectors/something"
+    "github.com/arsonistgopher/jinfluxdbexporter/collectors/something"
     )
 
     ...

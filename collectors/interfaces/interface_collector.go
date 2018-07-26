@@ -1,12 +1,12 @@
 package interfaces
 
 import (
-	"fmt"
 	"strings"
+	"time"
 
-	"github.com/arsonistgopher/jkafkaexporter/collector"
-	"github.com/arsonistgopher/jkafkaexporter/internal/channels"
-	"github.com/arsonistgopher/jkafkaexporter/rpc"
+	"github.com/arsonistgopher/jinfluxdbexporter/collector"
+	"github.com/arsonistgopher/jinfluxdbexporter/internal/channels"
+	"github.com/arsonistgopher/jinfluxdbexporter/rpc"
 )
 
 // Collector collects interface metrics
@@ -20,7 +20,7 @@ func NewCollector() collector.RPCCollector {
 }
 
 // Collect collects metrics from JunOS
-func (c *interfaceCollector) Collect(client rpc.Client, ch chan<- channels.Response, label string, topic string) error {
+func (c *interfaceCollector) Collect(client rpc.Client, ch chan<- channels.InfluxDBMeasurement, label string, topic string) error {
 	stats, err := c.interfaceStats(client)
 	if err != nil {
 		return err
@@ -77,7 +77,7 @@ func (c *interfaceCollector) interfaceStats(client rpc.Client) ([]*InterfaceStat
 	return stats, nil
 }
 
-func (*interfaceCollector) collectForInterface(s *InterfaceStats, ch chan<- channels.Response, label string, topic string) {
+func (*interfaceCollector) collectForInterface(s *InterfaceStats, ch chan<- channels.InfluxDBMeasurement, label string, measurement string) {
 
 	if s.IsPhysical {
 		adminUp := 0
@@ -93,10 +93,25 @@ func (*interfaceCollector) collectForInterface(s *InterfaceStats, ch chan<- chan
 			err = 1
 		}
 
-		jsonResponse := "{Node: %s, Iface: %s, IfaceDescription: %s, IfaceMAC: %s, ReceivedBytes: %f, " +
-			"TransmitBytes: %f, AdminState: %d, OpState: %d, Err: %d, TXErr: %f, TXDrop: %f, RXError: %f, RXDrops: %f}"
+		tagset := make(map[string]string)
+		tagset["host"] = label
 
-		ch <- channels.Response{Data: fmt.Sprintf(jsonResponse, label, s.Name, s.Description, s.Mac, s.ReceiveBytes, s.TransmitBytes,
-			adminUp, operUp, err, s.TransmitErrors, s.TransmitDrops, s.ReceiveErrors, s.ReceiveDrops), Topic: topic}
+		fieldset := map[string]interface{}{
+			"Iface":            s.Name,
+			"IfaceDescription": s.Description,
+			"IfaceMAC":         s.Mac,
+			"ReceivedBytes":    uint64(s.ReceiveBytes),
+			"TransmitBytes":    uint64(s.TransmitBytes),
+			"AdminState":       adminUp,
+			"OpState":          operUp,
+			"Err":              err,
+			"TXErr":            uint64(s.TransmitErrors),
+			"TXDrop":           uint64(s.TransmitDrops),
+			"RXErr":            uint64(s.ReceiveErrors),
+			"RXDrop":           uint64(s.ReceiveDrops),
+		}
+
+		ch <- channels.InfluxDBMeasurement{Measurement: measurement, TagSet: tagset, FieldSet: fieldset, TimeStamp: time.Now()}
+
 	}
 }

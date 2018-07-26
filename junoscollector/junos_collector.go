@@ -3,12 +3,12 @@ package junoscollector
 import (
 	"fmt"
 
-	"github.com/arsonistgopher/jkafkaexporter/internal/channels"
+	"github.com/arsonistgopher/jinfluxdbexporter/internal/channels"
 
 	"golang.org/x/crypto/ssh"
 
-	"github.com/arsonistgopher/jkafkaexporter/collector"
-	"github.com/arsonistgopher/jkafkaexporter/rpc"
+	"github.com/arsonistgopher/jinfluxdbexporter/collector"
+	"github.com/arsonistgopher/jinfluxdbexporter/rpc"
 )
 
 // JunosCollector for export
@@ -36,7 +36,7 @@ func (c *JunosCollector) Len() int {
 }
 
 // Collect implements interface
-func (c *JunosCollector) Collect(ch chan<- channels.Response, label string) {
+func (c *JunosCollector) Collect(ch chan<- channels.InfluxDBMeasurement, label string) {
 
 	client, err := rpc.Create(c.sshconfig, c.target, c.port)
 
@@ -53,7 +53,7 @@ func (c *JunosCollector) Collect(ch chan<- channels.Response, label string) {
 	}
 }
 
-func (c *JunosCollector) collectForHost(client *rpc.Client, ch chan<- channels.Response, label string) {
+func (c *JunosCollector) collectForHost(client *rpc.Client, ch chan<- channels.InfluxDBMeasurement, label string) {
 
 	for k, col := range c.collectors {
 		err := col.Collect(*client, ch, label, k)

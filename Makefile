@@ -17,7 +17,7 @@ WARN_COLOR=\033[33;01m
 
 MAKE_COLOR=\033[33;01m%-20s\033[0m
 
-MAIN = github.com/arsonistgopher/jkafkaexporter
+MAIN = github.com/arsonistgopher/jinfluxdbexporter
 SRCS = $(shell git ls-files '*.go' | grep -v '^vendor/')
 PKGS = $(shell go list ./... | grep -v '/vendor/')
 

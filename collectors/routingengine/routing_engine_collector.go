@@ -1,11 +1,11 @@
 package routingengine
 
 import (
-	"fmt"
+	"time"
 
-	"github.com/arsonistgopher/jkafkaexporter/collector"
-	"github.com/arsonistgopher/jkafkaexporter/internal/channels"
-	"github.com/arsonistgopher/jkafkaexporter/rpc"
+	"github.com/arsonistgopher/jinfluxdbexporter/collector"
+	"github.com/arsonistgopher/jinfluxdbexporter/internal/channels"
+	"github.com/arsonistgopher/jinfluxdbexporter/rpc"
 )
 
 type routingEngineCollector struct {
@@ -18,7 +18,7 @@ func NewCollector() collector.RPCCollector {
 }
 
 // Collect collects metrics from JunOS
-func (c *routingEngineCollector) Collect(client rpc.Client, ch chan<- channels.Response, label string, topic string) error {
+func (c *routingEngineCollector) Collect(client rpc.Client, ch chan<- channels.InfluxDBMeasurement, label string, measurement string) error {
 	x := &RoutingEngineRpc{}
 	err := rpc.RunCommandAndParse(client, "<get-route-engine-information/>", &x)
 	if err != nil {
@@ -27,12 +27,24 @@ func (c *routingEngineCollector) Collect(client rpc.Client, ch chan<- channels.R
 
 	stats := x.RouteEngine
 
-	jsonReturn := "{Node: %s, REngine: {Temp: %f, MemoryUtilised: %f, CPUTemp: %f, CPUUser: %f, CPUBackground: %f, " +
-		"CPUSystem: %f, CPUInterrupt: %f, CPUIdle: %f, LoadAverageOne: %f, LoadAverageFive: %f, LoadAverageFifteen: %f}}"
+	tagset := make(map[string]string)
+	tagset["host"] = label
 
-	ch <- channels.Response{Data: fmt.Sprintf(jsonReturn, label, stats.Temperature.Value, stats.MemoryUtilization, stats.CPUTemperature.Value,
-		stats.CPUUser, stats.CPUBackground, stats.CPUSystem, stats.CPUInterrupt, stats.CPUIdle, stats.LoadAverageOne,
-		stats.LoadAverageFive, stats.LoadAverageFifteen), Topic: topic}
+	fieldset := map[string]interface{}{
+		"temp":           uint64(stats.Temperature.Value),
+		"memoryUtilised": uint64(stats.MemoryUtilization),
+		"cpuTemp":        uint64(stats.CPUTemperature.Value),
+		"cpuUser":        uint64(stats.CPUUser),
+		"cpuBackground":  uint64(stats.CPUBackground),
+		"cpuSystem":      uint64(stats.CPUSystem),
+		"cpuInterrupt":   uint64(stats.CPUInterrupt),
+		"cpuIdle":        uint64(stats.CPUIdle),
+		"loadAverage1":   uint64(stats.LoadAverageOne),
+		"loadAverage5":   uint64(stats.LoadAverageFive),
+		"loadAverage15":  uint64(stats.LoadAverageFifteen),
+	}
+
+	ch <- channels.InfluxDBMeasurement{Measurement: measurement, TagSet: tagset, FieldSet: fieldset, TimeStamp: time.Now()}
 
 	return nil
 }

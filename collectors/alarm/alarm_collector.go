@@ -3,13 +3,13 @@ package alarm
 import (
 	// "net/rpc"
 
-	"fmt"
 	"regexp"
+	"time"
 
-	"github.com/arsonistgopher/jkafkaexporter/internal/channels"
-	"github.com/arsonistgopher/jkafkaexporter/rpc"
+	"github.com/arsonistgopher/jinfluxdbexporter/internal/channels"
+	"github.com/arsonistgopher/jinfluxdbexporter/rpc"
 
-	"github.com/arsonistgopher/jkafkaexporter/collector"
+	"github.com/arsonistgopher/jinfluxdbexporter/collector"
 )
 
 const prefix = "junos_alarms_"
@@ -36,15 +36,21 @@ func NewCollector(alarmsFilter string) collector.RPCCollector {
 }
 
 // Collect collects metrics from JunOS
-func (c *alarmCollector) Collect(client rpc.Client, ch chan<- channels.Response, label string, topic string) error {
+func (c *alarmCollector) Collect(client rpc.Client, ch chan<- channels.InfluxDBMeasurement, label string, measurement string) error {
 	counter, err := c.Counter(client)
 	if err != nil {
 		return err
 	}
 
-	jsonReturn := "{Node: %s, Status: {RedAlarm: %f, YellowAlarm: %f}}"
-	ch <- channels.Response{Data: fmt.Sprintf(jsonReturn, label, counter.RedCount, counter.YellowCount), Topic: topic}
+	tagset := make(map[string]string)
+	tagset["host"] = label
 
+	fieldset := map[string]interface{}{
+		"redcount":    uint64(counter.RedCount),
+		"yellowcount": uint64(counter.YellowCount),
+	}
+
+	ch <- channels.InfluxDBMeasurement{Measurement: measurement, TagSet: tagset, FieldSet: fieldset, TimeStamp: time.Now()}
 	return nil
 }
 

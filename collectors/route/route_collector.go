@@ -2,10 +2,11 @@ package route
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/arsonistgopher/jkafkaexporter/collector"
-	"github.com/arsonistgopher/jkafkaexporter/internal/channels"
-	"github.com/arsonistgopher/jkafkaexporter/rpc"
+	"github.com/arsonistgopher/jinfluxdbexporter/collector"
+	"github.com/arsonistgopher/jinfluxdbexporter/internal/channels"
+	"github.com/arsonistgopher/jinfluxdbexporter/rpc"
 )
 
 type routeCollector struct {
@@ -17,20 +18,41 @@ func NewCollector() collector.RPCCollector {
 }
 
 // Collect collects metrics from JunOS
-func (c *routeCollector) Collect(client rpc.Client, ch chan<- channels.Response, label string, topic string) error {
+func (c *routeCollector) Collect(client rpc.Client, ch chan<- channels.InfluxDBMeasurement, label string, measurement string) error {
 	items, err := c.tableItems(client)
+
 	if err != nil {
 		fmt.Println("ERROR: ", err)
 		return err
 	}
 
 	for _, s := range items.Tables {
-		jsonResponse := "{Node: %s, totalRoutes: %d, activeRoutes: %d, maxRoutes: %d}"
-		ch <- channels.Response{Data: fmt.Sprintf(jsonResponse, label, s.TotalRoutes, s.ActiveRoutes, s.MaxRoutes), Topic: topic}
+
+		tagset := make(map[string]string)
+		tagset["host"] = label
+		tagset["table"] = s.Name
+
+		fieldset := map[string]interface{}{
+			"totalRoutes":  uint64(s.TotalRoutes),
+			"activeRoutes": uint64(s.ActiveRoutes),
+		}
+
+		ch <- channels.InfluxDBMeasurement{Measurement: measurement, TagSet: tagset, FieldSet: fieldset, TimeStamp: time.Now()}
 
 		for _, p := range s.Protocols {
-			jsonResponse := "{Node: %s, protocolName: %s, protocolRoutes: %d, protocolActiveRoutes: %d}"
-			ch <- channels.Response{Data: fmt.Sprintf(jsonResponse, label, p.Name, p.Routes, p.ActiveRoutes), Topic: topic}
+
+			tagset := make(map[string]string)
+			tagset["host"] = label
+			tagset["table"] = s.Name
+			tagset["protocol"] = p.Name
+
+			fieldset := map[string]interface{}{
+				"protocolName":         p.Name,
+				"protocolRoutes":       uint64(p.Routes),
+				"protocolActiveRoutes": uint64(p.ActiveRoutes),
+			}
+
+			ch <- channels.InfluxDBMeasurement{Measurement: measurement, TagSet: tagset, FieldSet: fieldset, TimeStamp: time.Now()}
 		}
 	}
 
