@@ -18,7 +18,9 @@ import (
 	// Add new collectors here
 	"github.com/arsonistgopher/jkafkaexporter/collectors/alarm"
 	"github.com/arsonistgopher/jkafkaexporter/collectors/environment"
+	"github.com/arsonistgopher/jkafkaexporter/collectors/interfacediagnostics"
 	"github.com/arsonistgopher/jkafkaexporter/collectors/interfaces"
+	"github.com/arsonistgopher/jkafkaexporter/collectors/route"
 	"github.com/arsonistgopher/jkafkaexporter/collectors/routingengine"
 
 	"github.com/google/gops/agent"
@@ -98,6 +100,8 @@ func main() {
 	c.Add("interfaces", interfaces.NewCollector())
 	c.Add("routing-engine", routingengine.NewCollector())
 	c.Add("environment", environment.NewCollector())
+	c.Add("route", route.NewCollector())
+	c.Add("interfacediagnostics", interfacediagnostics.NewCollector())
 
 	// Add one to WaitGroup
 	wg.Add(1)
