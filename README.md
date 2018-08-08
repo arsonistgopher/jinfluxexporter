@@ -26,19 +26,19 @@ You can view full API documentation at GoDoc: http://godoc.org/github.com/arsoni
 
 ## Usage
 
-`./jinfluxdbexporter -identity vmx01 -kafkaperiod 1 -kafkaport 9092 -kafkahost localhost -password Passw0rd -username bob -sshport 22 -target 10.42.0.132`
+./jinfluxexporter -identity=vmx01 -influxdb=junos -influxhost=http://IP:PORT -influxperiod=5 -username=USERNAME -password=JUNOSPASSWORD -target=JUNOSHOST
 
-You can also put an ampersand after the invocation to push the application in to the background.
+You can also put an ampersand after the invocation to push the application in to the background. If you want to run this in the background or as a service, my advice here is to put it in a Docker container (see the Dockerfile).
 
 Also, this application can also work with ssh-keys using the '-sshkey` switch which the argument is the fully qualified path to the ssh-private key. Ensure the public key has been installed on to the Junos device in question.
 
-Currently, collectors include: alarm, environment, interfaces and routing-engine. With relative ease you should be able to create a custom collector based on the existing patterns in the aforementioned collectors. Include the import in `main.go` at both the package import section and relevant code section. See examples below:
+With relative ease you should be able to create a custom collector based on the existing patterns in the aforementioned collectors. Include the import in `main.go` at both the package import section and relevant code section. See examples below:
 
 ```go
     import (
     ...
 	// Add new collectors here
-    "github.com/arsonistgopher/jinfluxdbexporter/collectors/something"
+    "github.com/arsonistgopher/jinfluxexporter/collectors/something"
     )
 
     ...
