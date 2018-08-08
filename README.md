@@ -48,7 +48,19 @@ With relative ease you should be able to create a custom collector based on the 
 	c.Add("something", something.NewCollector())
 ```
 
-In the last line of config, the "something" is also the Kafka topic.
+## Docker
+
+In order to build the Docker image, follow the steps below. Feel free to modify as you see fit.
+
+```bash
+docker build -f Dockerfile . -t arsonistgopher/jinfluxexporter
+docker run -d --name bob arsonistgopher/jinfluxexporter
+```
+
+You can also check Docker's logs
+```bash
+docker logs bob
+```
 
 ## Attribution
 
