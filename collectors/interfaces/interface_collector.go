@@ -35,7 +35,7 @@ func (c *interfaceCollector) Collect(client rpc.Client, ch chan<- channels.Influ
 
 func (c *interfaceCollector) interfaceStats(client rpc.Client) ([]*InterfaceStats, error) {
 	x := &InterfaceRpc{}
-	err := rpc.RunCommandAndParse(client, `<get-interface-information><level>statistics</level><level-extra>detail</level-extra></get-interface-information>`, &x)
+	err := rpc.RunCommandAndParse(client, `<get-interface-information><level-extra>detail</level-extra></get-interface-information>`, &x)
 	if err != nil {
 		return nil, err
 	}
@@ -95,6 +95,7 @@ func (*interfaceCollector) collectForInterface(s *InterfaceStats, ch chan<- chan
 
 		tagset := make(map[string]string)
 		tagset["host"] = label
+		tagset["phyname"] = s.Name
 
 		fieldset := map[string]interface{}{
 			"Iface":            s.Name,
@@ -113,5 +114,21 @@ func (*interfaceCollector) collectForInterface(s *InterfaceStats, ch chan<- chan
 
 		ch <- channels.InfluxDBMeasurement{Measurement: measurement, TagSet: tagset, FieldSet: fieldset, TimeStamp: time.Now()}
 
+	} else if !s.IsPhysical {
+
+		tagset := make(map[string]string)
+		tagset["host"] = label
+		tagset["logicalname"] = s.Name
+
+		fieldset := map[string]interface{}{
+			"Iface":            s.Name,
+			"IfaceDescription": s.Description,
+			"IfaceMAC":         s.Mac,
+			"ReceivedBytes":    uint64(s.ReceiveBytes),
+			"TransmitBytes":    uint64(s.TransmitBytes),
+		}
+
+		ch <- channels.InfluxDBMeasurement{Measurement: measurement, TagSet: tagset, FieldSet: fieldset, TimeStamp: time.Now()}
 	}
+
 }

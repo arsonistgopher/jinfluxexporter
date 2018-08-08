@@ -20,13 +20,15 @@ type Config struct {
 }
 
 // StartInflux is a GR that accepts a channel.
-func StartInflux(me string, ic Config, jc *junoscollector.JunosCollector, done chan struct{}, wg *sync.WaitGroup) (chan channels.InfluxDBMeasurement, error) {
+func StartInflux(me string, ic Config, jc *junoscollector.JunosCollector, done chan struct{}, wg *sync.WaitGroup, timeout int) (chan channels.InfluxDBMeasurement, error) {
 
 	// Create the buffer depth to match the number of collectors
 	responsechan := make(chan channels.InfluxDBMeasurement, jc.Len())
 
 	go func(me string, ic Config, jc *junoscollector.JunosCollector, done chan struct{}, wg *sync.WaitGroup, responsechan chan channels.InfluxDBMeasurement) {
 		ticker := time.NewTicker(ic.InfluxdbExport)
+		// To keep influxDB connection alive
+		influxping := time.NewTicker(time.Duration(5 * time.Second))
 		influxdbdeath := make(chan struct{}, 1)
 
 		go func(responsechan chan channels.InfluxDBMeasurement, ic Config, done chan struct{}) {
@@ -40,20 +42,27 @@ func StartInflux(me string, ic Config, jc *junoscollector.JunosCollector, done c
 				log.Fatal(err)
 			}
 
+			transportTimeout := time.Duration(timeout+1) * time.Second
+			// Create a new HTTPClient
+			httpc, err := client.NewHTTPClient(client.HTTPConfig{
+				Addr: ic.InfluxdbHost,
+				// Here we set the transport timeout to be that of the influxexport period + 1 second, thus hopefully keeping things alive
+				Timeout: transportTimeout,
+			})
+			if err != nil {
+				log.Fatal(err)
+			}
+
 			for {
 				select {
 				case <-done:
-					wg.Done()
-					return
-				case r := <-responsechan:
-
-					// Create a new HTTPClient
-					httpc, err := client.NewHTTPClient(client.HTTPConfig{
-						Addr: ic.InfluxdbHost,
-					})
+					httpc.Close()
 					if err != nil {
 						log.Fatal(err)
 					}
+					wg.Done()
+					return
+				case r := <-responsechan:
 
 					pt, err := client.NewPoint(r.Measurement, r.TagSet, r.FieldSet, r.TimeStamp)
 					if err != nil {
@@ -66,9 +75,13 @@ func StartInflux(me string, ic Config, jc *junoscollector.JunosCollector, done c
 						fmt.Print(err)
 					}
 
-					httpc.Close()
+				case <-influxping.C:
+					// Do a InfluxDB ping every five seconds
+					_, _, err := httpc.Ping(time.Second * 5)
+
+					// If we get an error here, a TODO() would be to create a new client session and test it before crapping out
 					if err != nil {
-						log.Fatal(err)
+						fmt.Print(err)
 					}
 				}
 			}

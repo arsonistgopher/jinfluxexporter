@@ -107,7 +107,7 @@ func main() {
 	wg.Add(1)
 
 	// Start Influx GR that will consume the collector and transmit info to the topic
-	_, err := influxhandler.StartInflux(*identity, iconfig, c, influxdeath, wg)
+	_, err := influxhandler.StartInflux(*identity, iconfig, c, influxdeath, wg, *influxExport)
 
 	if err != nil {
 		log.Printf("Error starting Influx handler: %s", err)

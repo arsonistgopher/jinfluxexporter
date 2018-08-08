@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"log"
+	"strings"
 
 	drv "github.com/arsonistgopher/go-netconf/drivers/driver"
 	sshdriver "github.com/arsonistgopher/go-netconf/drivers/ssh"
@@ -66,7 +67,9 @@ func RunCommandAndParse(c Client, rpcenv string, obj interface{}) error {
 		return err
 	}
 
-	err = xml.Unmarshal([]byte(reply.Data), obj)
+	cleaneddata := strings.Replace(reply.Data, "\n", "", -1)
+
+	err = xml.Unmarshal([]byte(cleaneddata), obj)
 
 	if err != nil {
 		fmt.Println("ERROR: ", err)
