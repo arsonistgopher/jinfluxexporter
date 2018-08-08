@@ -1,7 +1,5 @@
 FROM golang:latest
 
-# ENV TARGET="81.138.165.210"
-
 WORKDIR /go/src/app
 COPY . .
 RUN go build -o main .
