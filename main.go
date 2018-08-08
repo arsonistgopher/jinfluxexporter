@@ -11,18 +11,18 @@ import (
 
 	"log"
 
-	"github.com/arsonistgopher/jinfluxdbexporter/influxhandler"
-	"github.com/arsonistgopher/jinfluxdbexporter/junoscollector"
+	"github.com/arsonistgopher/jinfluxexporter/influxhandler"
+	"github.com/arsonistgopher/jinfluxexporter/junoscollector"
 	"golang.org/x/crypto/ssh"
 
 	// Add new collectors here
-	"github.com/arsonistgopher/jinfluxdbexporter/collectors/alarm"
-	"github.com/arsonistgopher/jinfluxdbexporter/collectors/bgp"
-	"github.com/arsonistgopher/jinfluxdbexporter/collectors/environment"
-	"github.com/arsonistgopher/jinfluxdbexporter/collectors/interfacediagnostics"
-	"github.com/arsonistgopher/jinfluxdbexporter/collectors/interfaces"
-	"github.com/arsonistgopher/jinfluxdbexporter/collectors/route"
-	"github.com/arsonistgopher/jinfluxdbexporter/collectors/routingengine"
+	"github.com/arsonistgopher/jinfluxexporter/collectors/alarm"
+	"github.com/arsonistgopher/jinfluxexporter/collectors/bgp"
+	"github.com/arsonistgopher/jinfluxexporter/collectors/environment"
+	"github.com/arsonistgopher/jinfluxexporter/collectors/interfacediagnostics"
+	"github.com/arsonistgopher/jinfluxexporter/collectors/interfaces"
+	"github.com/arsonistgopher/jinfluxexporter/collectors/route"
+	"github.com/arsonistgopher/jinfluxexporter/collectors/routingengine"
 )
 
 const version string = "00.00.01"

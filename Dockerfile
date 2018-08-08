@@ -1,13 +1,9 @@
-FROM golang
+FROM golang:latest
 
-ENV IDENTITY="vmx01"
-ENV TOPIC="important"
-ENV PERIOD=1
-ENV KAFKAPORT=9092
-ENV KAFKAHOST="10.42.0.1"
-ENV TARGET="10.42.0.132"
+# ENV TARGET="81.138.165.210"
 
-RUN apt-get install -y git && \
-    go get github.com/arsonistgopher/jinfluxdbexporter
+WORKDIR /go/src/app
+COPY . .
+RUN go build -o main .
 
-CMD jinfluxdbexporter -identity=$IDENTITY -kafkatopic=$TOPIC -kafkaperiod=$PERIOD -kafkaport=$KAFKAPORT -kafkahost=$KAFKAHOST -password Passw0rd -username jet -sshport 22 -target=$TARGET
+CMD ["/go/src/app/main", "-identity=vmx01", "-influxdb=junos", "-influxhost=http://192.168.10.200:8086", "-influxperiod=5", "-username=jet", "-password=Passw0rd", "-target=81.138.165.210"]
