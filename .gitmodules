@@ -1,6 +1,0 @@
-[submodule "vendor/golang.org/x/crypto"]
-	path = vendor/golang.org/x/crypto
-	url = https://github.com/golang/crypto
-[submodule "vendor/github.com/arsonistgopher/go-netconf"]
-	path = vendor/github.com/arsonistgopher/go-netconf
-	url = https://github.com/arsonistgopher/go-netconf
