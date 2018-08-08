@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.org/arsonistgopher/jinfluxdbexporter.svg?branch=master)](https://travis-ci.org/arsonistgopher/jinfluxdbexporter)
 [![Go Report Card](https://goreportcard.com/badge/github.com/arsonistgopher/jinfluxdbexporter)](https://goreportcard.com/report/github.com/arsonistgopher/jinfluxdbexporter)
 
-This is an application for Junos that drives NETCONF in order to retrieve data that is transformed into JSON and then placed on to a Kafka bus. Each Kafka topic is derived from the collector name.
+This is an application for Junos that drives NETCONF in order to retrieve operational data and said data is inserted as measurements in to an InfluxDB database. Tags and fields are derived automatically from the measurements taken by this application. Your best bet is to use [Chronograf](https://www.influxdata.com/time-series-platform/chronograf/) to view the data being generated.
 
 > **Note:** The idea here is that it is `easy` to create a new collector and re-build the binary.
 
@@ -12,14 +12,14 @@ This is an application for Junos that drives NETCONF in order to retrieve data t
 
 Currently beta version. Seems to behave itself!
 
-Kafka options are fairly limited, but the idea here is if we start with the basics and add features as they're required, the project will receive enhancements naturally.
+InfluxDB options are fairly limited, but the idea here is if we start with the basics and add features as they're required, the project will receive enhancements naturally.
 
 ## Features
 * Simple user land application 
 
 ## Install
 * Requires Go 1.4 or later
-* `go get github.com/arsonistgopher/jinfluxdbexporter`
+* `go get github.com/arsonistgopher/jinfluxexporter`
 
 ## Documentation
 You can view full API documentation at GoDoc: http://godoc.org/github.com/arsonistgopher/jinfluxdbexporter.
