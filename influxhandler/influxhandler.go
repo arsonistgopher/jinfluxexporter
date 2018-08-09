@@ -2,7 +2,7 @@ package influxhandler
 
 import (
 	"fmt"
-	"log"
+
 	"sync"
 	"time"
 
@@ -30,8 +30,12 @@ func StartInflux(me string, ic Config, jc *junoscollector.JunosCollector, done c
 		// To keep influxDB connection alive
 		influxping := time.NewTicker(time.Duration(5 * time.Second))
 		influxdbdeath := make(chan struct{}, 1)
+		var wg2 sync.WaitGroup
 
-		go func(responsechan chan channels.InfluxDBMeasurement, ic Config, done chan struct{}) {
+		// Add one on for the Go routine we're about to launch
+		wg2.Add(1)
+
+		go func(responsechan chan channels.InfluxDBMeasurement, ic Config, done chan struct{}, wg2 *sync.WaitGroup) {
 
 			bp, err := client.NewBatchPoints(client.BatchPointsConfig{
 				Database:  ic.InfluxdbDB,
@@ -39,7 +43,7 @@ func StartInflux(me string, ic Config, jc *junoscollector.JunosCollector, done c
 			})
 
 			if err != nil {
-				log.Fatal(err)
+				fmt.Print(err)
 			}
 
 			transportTimeout := time.Duration(timeout+1) * time.Second
@@ -50,17 +54,17 @@ func StartInflux(me string, ic Config, jc *junoscollector.JunosCollector, done c
 				Timeout: transportTimeout,
 			})
 			if err != nil {
-				log.Fatal(err)
+				fmt.Print(err)
 			}
 
 			for {
 				select {
 				case <-done:
-					httpc.Close()
+					err := httpc.Close()
 					if err != nil {
-						log.Fatal(err)
+						fmt.Print(err)
 					}
-					wg.Done()
+					wg2.Done()
 					return
 				case r := <-responsechan:
 
@@ -76,22 +80,25 @@ func StartInflux(me string, ic Config, jc *junoscollector.JunosCollector, done c
 					}
 
 				case <-influxping.C:
-					// Do a InfluxDB ping every five seconds
-					_, _, err := httpc.Ping(time.Second * 5)
+					// Do a InfluxDB ping
+					go func() {
+						_, _, err := httpc.Ping(time.Second * 1)
 
-					// If we get an error here, a TODO() would be to create a new client session and test it before crapping out
-					if err != nil {
-						fmt.Print(err)
-					}
+						// If we get an error here, a TODO() would be to create a new client session and test it before crapping out
+						if err != nil {
+							fmt.Print(err)
+						}
+					}()
 				}
 			}
-		}(responsechan, ic, influxdbdeath)
+		}(responsechan, ic, influxdbdeath, &wg2)
 
 		for {
 			select {
 			case <-done:
 				// Get's here, we're done
 				influxdbdeath <- struct{}{}
+				wg2.Wait()
 				wg.Done()
 				return
 			case <-ticker.C:

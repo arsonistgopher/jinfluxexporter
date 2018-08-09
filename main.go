@@ -2,14 +2,16 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/signal"
+	"runtime"
 	"sync"
 	"syscall"
 	"time"
 
-	"log"
+	//_ "net/http/pprof"
 
 	"github.com/arsonistgopher/jinfluxexporter/influxhandler"
 	"github.com/arsonistgopher/jinfluxexporter/junoscollector"
@@ -25,7 +27,7 @@ import (
 	"github.com/arsonistgopher/jinfluxexporter/collectors/routingengine"
 )
 
-const version string = "00.00.01"
+const version string = "00.01.00"
 
 // Beta release 00.01.00
 
@@ -58,6 +60,8 @@ func PublicKeyFile(file string) ssh.AuthMethod {
 }
 
 func main() {
+
+	runtime.GOMAXPROCS(2)
 	// Parse the flags
 	flag.Parse()
 
@@ -110,7 +114,7 @@ func main() {
 	_, err := influxhandler.StartInflux(*identity, iconfig, c, influxdeath, wg, *influxExport)
 
 	if err != nil {
-		log.Printf("Error starting Influx handler: %s", err)
+		fmt.Printf("Error starting Influx handler: %s", err)
 	}
 
 	// Loop here now and wait for death signals
@@ -124,6 +128,10 @@ func main() {
 	//}
 	// End of "GOPS"
 
+	// go func() {
+	//	fmt.Println(http.ListenAndServe("localhost:6060", nil))
+	//}()
+
 	// Create signal listener loop GR
 	for {
 
@@ -134,7 +142,6 @@ func main() {
 			if c == syscall.SIGINT || c == syscall.SIGTERM || c == syscall.SIGKILL {
 
 				influxdeath <- struct{}{}
-				// fmt.Println("DEBUG: Waiting for sync group to be done")
 				wg.Wait()
 				os.Exit(0)
 			}
