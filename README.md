@@ -1,8 +1,8 @@
 # jinfluxdbexporter
 
 [![GoDoc](https://godoc.org/github.com/arsonistgopher/jinfluxexporter?status.svg)](https://godoc.org/github.com/arsonistgopher/go-netconf/jinfluxdbexporter)
-[![Build Status](https://travis-ci.org/arsonistgopher/jinfluxexporter.svg?branch=master)](https://travis-ci.org/arsonistgopher/jinfluxdbexporter)
-[![Go Report Card](https://goreportcard.com/badge/github.com/arsonistgopher/jinfluxexporter)](https://goreportcard.com/report/github.com/arsonistgopher/jinfluxdbexporter)
+[![Build Status](https://travis-ci.org/arsonistgopher/jinfluxexporter.svg?branch=master)](https://travis-ci.org/arsonistgopher/jinfluxexporter)
+[![Go Report Card](https://goreportcard.com/badge/github.com/arsonistgopher/jinfluxexporter)](https://goreportcard.com/report/github.com/arsonistgopher/jinfluxexporter)
 
 This is an application for Junos that drives NETCONF in order to retrieve operational data and said data is inserted as measurements in to an InfluxDB database. Tags and fields are derived automatically from the measurements taken by this application. Your best bet is to use [Chronograf](https://www.influxdata.com/time-series-platform/chronograf/) to view the data being generated.
 
